@@ -1,7 +1,7 @@
 import { Link, useRouter } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, PermissionsAndroid, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, PermissionsAndroid, Platform, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { AwkiMark } from "../src/components/AwkiMark";
 import { RiskBadge } from "../src/components/RiskBadge";
 import { Screen } from "../src/components/Screen";
@@ -37,6 +37,14 @@ function riskCount(items: InboxItem[]) {
   return items.filter((item) => item.analysis.score >= 35).length;
 }
 
+function isEmailItem(item: InboxItem) {
+  return item.source === "email";
+}
+
+function isMessageItem(item: InboxItem) {
+  return item.source === "sms" || item.source === "app_message" || item.source === "audio";
+}
+
 function displaySubject(item: InboxItem) {
   return item.subject?.replace(/\s+/g, " ").trim() || item.preview.replace(/\s+/g, " ").trim();
 }
@@ -45,11 +53,10 @@ export default function InboxScreen() {
   const router = useRouter();
   const { items, loading, error, backendOnline, mockMode, apiBaseUrl, reload } = useInbox();
   const [tab, setTab] = useState<InboxTab>("email");
-  const riskyCount = riskCount(items);
-  const filteredItems = useMemo(
-    () => items.filter((item) => (tab === "email" ? item.source !== "sms" : item.source === "sms")),
-    [items, tab]
-  );
+  const emailItems = useMemo(() => items.filter(isEmailItem), [items]);
+  const messageItems = useMemo(() => items.filter(isMessageItem), [items]);
+  const riskyCount = riskCount(tab === "email" ? emailItems : messageItems);
+  const filteredItems = tab === "email" ? emailItems : messageItems;
 
   async function enableSmsProtection() {
     if (Platform.OS !== "android") {
@@ -134,6 +141,7 @@ export default function InboxScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={reload} tintColor={colors.primary} colors={[colors.primary]} />}
         ListHeaderComponent={
           <View style={styles.headerBlock}>
             <View style={styles.brandRow}>
@@ -150,12 +158,14 @@ export default function InboxScreen() {
 
             <Text style={styles.greeting}>Buenos días, Lissette</Text>
             <Text style={styles.headline}>
-              Encontré <Text style={styles.headlineDanger}>{riskyCount}</Text> {riskyCount === 1 ? "cosa rara" : "cosas raras"}{"\n"}en tus correos.
+              Encontré <Text style={styles.headlineDanger}>{riskyCount}</Text> {riskyCount === 1 ? "cosa rara" : "cosas raras"}{"\n"}
+              en tus {tab === "email" ? "correos" : "mensajes"}.
             </Text>
             <View style={styles.metaRow}>
               <MaterialCommunityIcons name="clock-outline" size={14} color={colors.subtle} />
               <Text style={styles.metaText}>
-                {mockMode ? "Datos de demo" : backendOnline ? "Revisé hace 2 minutos" : `Sin backend: ${apiBaseUrl}`} · {items.length} correos
+                {mockMode ? "Datos de demo" : backendOnline ? "Revisé hace 2 minutos" : `Sin backend: ${apiBaseUrl}`} ·{" "}
+                {emailItems.length} correos · {messageItems.length} mensajes
               </Text>
             </View>
 
@@ -164,12 +174,15 @@ export default function InboxScreen() {
                 <MaterialCommunityIcons name="email-outline" size={17} color={tab === "email" ? colors.surface : colors.muted} />
                 <Text style={[styles.tabText, tab === "email" && styles.tabTextActive]}>Correos</Text>
                 <View style={styles.tabCount}>
-                  <Text style={styles.tabCountText}>{riskCount(items.filter((item) => item.source !== "sms"))}</Text>
+                  <Text style={styles.tabCountText}>{riskCount(emailItems)}</Text>
                 </View>
               </Pressable>
               <Pressable style={[styles.tab, tab === "sms" && styles.tabActive]} onPress={() => setTab("sms")}>
                 <MaterialCommunityIcons name="message-outline" size={17} color={tab === "sms" ? colors.surface : colors.muted} />
                 <Text style={[styles.tabText, tab === "sms" && styles.tabTextActive]}>Mensajes</Text>
+                <View style={styles.tabCount}>
+                  <Text style={styles.tabCountText}>{riskCount(messageItems)}</Text>
+                </View>
               </Pressable>
             </View>
 

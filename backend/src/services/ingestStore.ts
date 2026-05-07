@@ -14,6 +14,7 @@ export type StoredInboxItem = {
 
 const DEFAULT_STORE_FILE = "data/ingested-inbox.json";
 const MAX_ITEMS = 100;
+const SECRET_PLACEHOLDER = "[secreto oculto]";
 
 function storeFile() {
   return process.env.INGESTED_INBOX_FILE ?? DEFAULT_STORE_FILE;
@@ -36,15 +37,30 @@ async function writeItems(items: StoredInboxItem[]) {
   await writeFile(file, `${JSON.stringify({ items: items.slice(0, MAX_ITEMS) }, null, 2)}\n`, { mode: 0o600 });
 }
 
+function redactSensitiveText(text: string) {
+  return text
+    .replace(/sk-ant-api[0-9A-Za-z_-]+/g, SECRET_PLACEHOLDER)
+    .replace(/GOCSPX-[0-9A-Za-z_-]+/g, SECRET_PLACEHOLDER)
+    .replace(/AIza[0-9A-Za-z_-]{20,}/g, SECRET_PLACEHOLDER)
+    .replace(/sk_[0-9A-Za-z]{20,}/g, SECRET_PLACEHOLDER);
+}
+
+function shouldExposeInboxItem(entry: StoredInboxItem) {
+  if (entry.source !== "app_message") return true;
+  if (/visible chat|accessibility/i.test(entry.subject ?? "")) return false;
+  return entry.analysis.score >= 35;
+}
+
 export async function recordAnalyzedInboxItem(message: IncomingMessage, analysis: AnalysisResult): Promise<StoredInboxItem> {
   const now = new Date().toISOString();
   const id = message.id ?? `${message.source}-${Date.now()}`;
+  const preview = redactSensitiveText(message.content).slice(0, 160);
   const item: StoredInboxItem = {
     id,
     source: message.source,
     sender: message.sender ?? "desconocido",
     subject: message.subject,
-    preview: message.content.slice(0, 160),
+    preview,
     receivedAt: now,
     analysis
   };
@@ -59,6 +75,6 @@ export async function recordAnalyzedInboxItem(message: IncomingMessage, analysis
 
 export async function listAnalyzedInboxItems(limit = 50): Promise<StoredInboxItem[]> {
   return (await readItems())
-    .filter((entry) => entry.source !== "app_message" || entry.analysis.score >= 35)
+    .filter(shouldExposeInboxItem)
     .slice(0, limit);
 }

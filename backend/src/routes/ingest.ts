@@ -11,7 +11,7 @@ import {
 } from "../ingest/normalizer.js";
 import { analyzeMessage } from "../services/orchestrator.js";
 import { decodeAudioBase64, transcribeAudio } from "../services/audioTranscription.js";
-import { recordAnalyzedInboxItem } from "../services/ingestStore.js";
+import { recordAnalyzedInboxItem, type StoredInboxItem } from "../services/ingestStore.js";
 import { notifyRiskItem } from "../services/pushNotifications.js";
 import { asyncRoute } from "./asyncRoute.js";
 
@@ -55,7 +55,18 @@ ingestRouter.post("/app-message", asyncRoute(async (req, res) => {
 
   const message = normalizeAppMessageInput(parsed.data);
   const analysis = await analyzeMessage(message);
-  const item = await recordAnalyzedInboxItem(message, analysis);
+  const shouldPersist = parsed.data.captureMethod !== "accessibility";
+  const item: StoredInboxItem = shouldPersist
+    ? await recordAnalyzedInboxItem(message, analysis)
+    : {
+        id: message.id ?? `app-message-${Date.now()}`,
+        source: message.source,
+        sender: message.sender ?? "desconocido",
+        subject: message.subject,
+        preview: "Contenido visible analizado sin guardarlo.",
+        receivedAt: new Date().toISOString(),
+        analysis
+      };
   const push = await notifyRiskItem(item).catch((error) => {
     console.error("Failed to send risk push notification", error);
     return { attempted: 0, sent: 0, skipped: 0, errors: [error instanceof Error ? error.message : "push_error"] };
