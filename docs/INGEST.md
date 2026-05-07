@@ -110,3 +110,32 @@ EXPO_PUBLIC_EAS_PROJECT_ID=TU_EAS_PROJECT_ID
 Nota: para push remoto real en Android se requiere un build con credenciales push/Firebase
 configuradas por EAS o equivalente. Sin `EXPO_PUBLIC_EAS_PROJECT_ID`, la app mantiene Gmail/SMS
 funcional pero no puede registrar el token remoto.
+
+## Audio / WhatsApp
+
+Artefactos versionados:
+
+- `backend/src/routes/ingest.ts`
+- `backend/src/services/audioTranscription.ts`
+
+Flujo:
+
+1. El cliente extrae un archivo de audio autorizado por el usuario, por ejemplo una nota de WhatsApp compartida con Awki.
+2. Envía `POST /ingest/audio` con `mediaType`, `filename` y `audioBase64`.
+3. El backend transcribe con ElevenLabs Speech to Text (`scribe_v2` por defecto).
+4. La transcripción se normaliza como `IncomingMessage` con `source: "audio"`.
+5. El orquestador evalúa urgencia, solicitud de datos, suplantación, enlaces, CMF/PhishTank/URLhaus y embeddings.
+6. Si supera el umbral de riesgo, se envía push al teléfono registrado.
+
+Payload mínimo:
+
+```json
+{
+  "id": "wa-audio-1",
+  "sender": "WhatsApp",
+  "filename": "nota.opus",
+  "mediaType": "audio/opus",
+  "audioBase64": "<base64>",
+  "languageCode": "es"
+}
+```

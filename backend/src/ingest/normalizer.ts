@@ -16,6 +16,17 @@ export const EmailIngestSchema = z.object({
   receivedAt: z.string().optional()
 });
 
+export const AudioIngestSchema = z.object({
+  id: z.string().optional(),
+  sender: z.string().optional(),
+  subject: z.string().optional(),
+  filename: z.string().min(1).max(180).optional(),
+  mediaType: z.string().min(1).max(80),
+  audioBase64: z.string().min(1),
+  receivedAt: z.string().optional(),
+  languageCode: z.string().min(2).max(8).optional()
+});
+
 export function normalizeSmsInput(input: z.infer<typeof SmsIngestSchema>): IncomingMessage {
   return {
     id: input.id ?? `sms-${Date.now()}`,
@@ -32,6 +43,19 @@ export function normalizeEmailInput(input: z.infer<typeof EmailIngestSchema>): I
     sender: input.sender,
     subject: input.subject,
     content: input.content
+  };
+}
+
+export function normalizeAudioTranscriptInput(
+  input: Pick<z.infer<typeof AudioIngestSchema>, "id" | "sender" | "subject" | "filename"> & { transcript: string }
+): IncomingMessage {
+  const subject = input.subject ?? input.filename ?? "Audio sospechoso";
+  return {
+    id: input.id ?? `audio-${Date.now()}`,
+    source: "audio",
+    sender: input.sender,
+    subject,
+    content: input.transcript
   };
 }
 

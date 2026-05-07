@@ -40,6 +40,8 @@ Nettoxic recibe señales reales antes del análisis por adaptadores de canal:
   El plugin `mobile/plugins/withNettoxicSmsIngest.js` inyecta permisos, receiver y URL de ingest en Android.
   Al llegar un SMS, el receiver llama `POST /ingest/sms`, recibe el análisis y emite una notificación local si
   el riesgo es medio o superior.
+- Audios sospechosos: `POST /ingest/audio` recibe audio base64 (`opus`, `m4a`, `mp3`, `wav`, etc.),
+  transcribe con ElevenLabs Scribe y analiza la transcripción con el mismo orquestador antifraude.
 - Gmail: backend con OAuth, `users.watch`, Pub/Sub push y `history.list`.
   El webhook `POST /gmail/pubsub` procesa `emailAddress` + `historyId`, descarga mensajes nuevos, limpia HTML,
   normaliza a `IncomingMessage` y ejecuta el orquestador.
@@ -111,6 +113,8 @@ Copiar `backend/.env.example` a `backend/.env` y configurar:
 - `ELEVENLABS_API_KEY`, para generar audio TTS corto de alertas de accesibilidad.
 - `ELEVENLABS_MODEL_ID`, default `eleven_flash_v2_5`.
 - `ELEVENLABS_VOICE_ID`, default `JBFqnCBsd6RMkjVDRZzb`.
+- `ELEVENLABS_STT_MODEL_ID`, default `scribe_v2`, para transcribir audios de WhatsApp/notas de voz.
+- `AUDIO_TRANSCRIPTION_MAX_BYTES`, default `15728640`.
 - `GEMINI_API_KEY`, fallback opcional para generar audio TTS desde el backend.
 - `GEMINI_TTS_MODEL`, default `gemini-3.1-flash-tts-preview`.
 - `GEMINI_TTS_VOICE`, default `Kore`.

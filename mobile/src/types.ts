@@ -58,7 +58,7 @@ export type AnalysisResult = {
 
 export type InboxItem = {
   id: string;
-  source: "email" | "sms" | "screenshot" | "manual";
+  source: "email" | "sms" | "screenshot" | "manual" | "audio";
   sender: string;
   subject?: string;
   preview: string;

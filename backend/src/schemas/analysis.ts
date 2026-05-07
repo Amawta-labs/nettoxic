@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const IncomingMessageSchema = z.object({
   id: z.string().optional(),
-  source: z.enum(["email", "sms", "manual", "screenshot"]).default("manual"),
+  source: z.enum(["email", "sms", "manual", "screenshot", "audio"]).default("manual"),
   sender: z.string().optional(),
   subject: z.string().optional(),
   content: z.string().min(1)
