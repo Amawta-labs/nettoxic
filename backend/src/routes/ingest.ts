@@ -51,29 +51,40 @@ ingestRouter.post("/audio", asyncRoute(async (req, res) => {
     return;
   }
 
-  let decodedAudio: ReturnType<typeof decodeAudioBase64>;
-  try {
-    decodedAudio = decodeAudioBase64(parsed.data.audioBase64, parsed.data.mediaType);
-  } catch (error) {
-    res.status(400).json({ error: error instanceof Error ? error.message : "invalid_audio_payload" });
-    return;
-  }
-
   let transcript: Awaited<ReturnType<typeof transcribeAudio>>;
-  try {
-    transcript = await transcribeAudio({
-      audio: decodedAudio.audio,
-      mediaType: decodedAudio.mediaType,
-      filename: parsed.data.filename,
-      languageCode: parsed.data.languageCode ?? "es"
-    });
-  } catch (error) {
-    console.error(
-      "Audio transcription failed",
-      error instanceof Error ? error.message.slice(0, 500) : "unknown_audio_transcription_error"
-    );
-    res.status(503).json({ error: "audio_transcription_unavailable" });
-    return;
+  if (parsed.data.transcript?.trim()) {
+    transcript = {
+      provider: "client",
+      model: "provided-transcript",
+      languageCode: parsed.data.languageCode ?? "es",
+      languageProbability: null,
+      text: parsed.data.transcript.replace(/\s+/g, " ").trim(),
+      wordsCount: parsed.data.transcript.trim().split(/\s+/).filter(Boolean).length
+    };
+  } else {
+    let decodedAudio: ReturnType<typeof decodeAudioBase64>;
+    try {
+      decodedAudio = decodeAudioBase64(parsed.data.audioBase64 ?? "", parsed.data.mediaType ?? "");
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "invalid_audio_payload" });
+      return;
+    }
+
+    try {
+      transcript = await transcribeAudio({
+        audio: decodedAudio.audio,
+        mediaType: decodedAudio.mediaType,
+        filename: parsed.data.filename,
+        languageCode: parsed.data.languageCode ?? "es"
+      });
+    } catch (error) {
+      console.error(
+        "Audio transcription failed",
+        error instanceof Error ? error.message.slice(0, 500) : "unknown_audio_transcription_error"
+      );
+      res.status(503).json({ error: "audio_transcription_unavailable" });
+      return;
+    }
   }
   const message = normalizeAudioTranscriptInput({ ...parsed.data, transcript: transcript.text });
   const analysis = await analyzeMessage(message);

@@ -122,7 +122,8 @@ Flujo:
 
 1. El cliente extrae un archivo de audio autorizado por el usuario, por ejemplo una nota de WhatsApp compartida con Awki.
 2. Envía `POST /ingest/audio` con `mediaType`, `filename` y `audioBase64`.
-3. El backend transcribe con ElevenLabs Speech to Text (`scribe_v2` por defecto).
+3. El backend transcribe con ElevenLabs Speech to Text (`scribe_v2` por defecto), o acepta `transcript`
+   si el cliente ya hizo STT on-device.
 4. La transcripción se normaliza como `IncomingMessage` con `source: "audio"`.
 5. El orquestador evalúa urgencia, solicitud de datos, suplantación, enlaces, CMF/PhishTank/URLhaus y embeddings.
 6. Si supera el umbral de riesgo, se envía push al teléfono registrado.
@@ -136,6 +137,18 @@ Payload mínimo:
   "filename": "nota.opus",
   "mediaType": "audio/opus",
   "audioBase64": "<base64>",
+  "languageCode": "es"
+}
+```
+
+Si el proveedor STT está bloqueado o se prefiere privacidad local, el cliente puede enviar:
+
+```json
+{
+  "id": "wa-audio-1",
+  "sender": "WhatsApp",
+  "filename": "nota.opus",
+  "transcript": "Texto transcrito localmente",
   "languageCode": "es"
 }
 ```

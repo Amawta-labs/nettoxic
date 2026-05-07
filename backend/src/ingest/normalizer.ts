@@ -21,10 +21,26 @@ export const AudioIngestSchema = z.object({
   sender: z.string().optional(),
   subject: z.string().optional(),
   filename: z.string().min(1).max(180).optional(),
-  mediaType: z.string().min(1).max(80),
-  audioBase64: z.string().min(1),
+  mediaType: z.string().min(1).max(80).optional(),
+  audioBase64: z.string().min(1).optional(),
+  transcript: z.string().min(1).optional(),
   receivedAt: z.string().optional(),
   languageCode: z.string().min(2).max(8).optional()
+}).superRefine((value, ctx) => {
+  if (!value.audioBase64 && !value.transcript) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "audioBase64 or transcript is required",
+      path: ["audioBase64"]
+    });
+  }
+  if (value.audioBase64 && !value.mediaType) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "mediaType is required when audioBase64 is present",
+      path: ["mediaType"]
+    });
+  }
 });
 
 export function normalizeSmsInput(input: z.infer<typeof SmsIngestSchema>): IncomingMessage {

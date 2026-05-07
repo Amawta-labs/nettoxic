@@ -1,5 +1,5 @@
 export type AudioTranscriptionResult = {
-  provider: "elevenlabs";
+  provider: "elevenlabs" | "client";
   model: string;
   languageCode: string | null;
   languageProbability: number | null;

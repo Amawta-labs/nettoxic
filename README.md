@@ -41,7 +41,8 @@ Nettoxic recibe señales reales antes del análisis por adaptadores de canal:
   Al llegar un SMS, el receiver llama `POST /ingest/sms`, recibe el análisis y emite una notificación local si
   el riesgo es medio o superior.
 - Audios sospechosos: `POST /ingest/audio` recibe audio base64 (`opus`, `m4a`, `mp3`, `wav`, etc.),
-  transcribe con ElevenLabs Scribe y analiza la transcripción con el mismo orquestador antifraude.
+  transcribe con ElevenLabs Scribe o acepta una transcripción local, y analiza el texto con el mismo
+  orquestador antifraude.
 - Gmail: backend con OAuth, `users.watch`, Pub/Sub push y `history.list`.
   El webhook `POST /gmail/pubsub` procesa `emailAddress` + `historyId`, descarga mensajes nuevos, limpia HTML,
   normaliza a `IncomingMessage` y ejecuta el orquestador.
