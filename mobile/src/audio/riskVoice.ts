@@ -28,7 +28,8 @@ export async function playRiskAlertVoice(text?: string | null) {
 
   try {
     const speech = await synthesizeRiskAlertSpeech(spokenText);
-    const fileUri = `${FileSystem.cacheDirectory}awki-risk-alert-${Date.now()}.wav`;
+    const extension = speech.mediaType === "audio/mpeg" ? "mp3" : "wav";
+    const fileUri = `${FileSystem.cacheDirectory}awki-risk-alert-${Date.now()}.${extension}`;
     await FileSystem.writeAsStringAsync(fileUri, speech.audioBase64, {
       encoding: FileSystem.EncodingType.Base64
     });

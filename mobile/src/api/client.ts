@@ -16,10 +16,11 @@ export type GmailAccountSummary = {
 
 export type RiskAlertSpeech = {
   audioBase64: string;
-  mediaType: "audio/wav";
+  mediaType: "audio/wav" | "audio/mpeg";
   model: string;
   voice: string;
   text: string;
+  provider?: "elevenlabs" | "gemini";
 };
 
 export class ApiError extends Error {
@@ -197,7 +198,7 @@ export async function synthesizeRiskAlertSpeech(text: string): Promise<RiskAlert
   const speech = data as Partial<RiskAlertSpeech>;
   if (
     typeof speech.audioBase64 !== "string" ||
-    speech.mediaType !== "audio/wav" ||
+    (speech.mediaType !== "audio/wav" && speech.mediaType !== "audio/mpeg") ||
     typeof speech.model !== "string" ||
     typeof speech.voice !== "string" ||
     typeof speech.text !== "string"

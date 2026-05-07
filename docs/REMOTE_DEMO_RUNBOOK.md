@@ -17,7 +17,12 @@ commit secrets. Railway injects `PORT`; the app listens on `0.0.0.0:$PORT`.
 For the accessibility voice alert, configure these backend-only variables in
 Railway:
 
-- `GEMINI_API_KEY`
+- `TTS_PROVIDER=auto`
+- `ELEVENLABS_API_KEY`
+- `ELEVENLABS_MODEL_ID=eleven_flash_v2_5`
+- `ELEVENLABS_VOICE_ID=JBFqnCBsd6RMkjVDRZzb`
+- `ELEVENLABS_OUTPUT_FORMAT=mp3_44100_128`
+- `GEMINI_API_KEY` as optional fallback
 - `GEMINI_TTS_MODEL=gemini-3.1-flash-tts-preview`
 - `GEMINI_TTS_VOICE=Kore`
 

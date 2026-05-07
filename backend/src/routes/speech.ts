@@ -1,10 +1,10 @@
 import { Router } from "express";
 import { z } from "zod";
 import { asyncRoute } from "./asyncRoute.js";
-import { geminiSpeechConfigured, generateRiskAlertSpeech } from "../services/geminiSpeech.js";
+import { generateSpeech, speechConfigured } from "../services/speechSynthesis.js";
 
 const SpeechRequestSchema = z.object({
-  text: z.string().min(1).max(240),
+  text: z.string().min(1).max(160),
   voice: z.string().min(1).max(40).optional()
 });
 
@@ -19,12 +19,12 @@ speechRouter.post(
       return;
     }
 
-    if (!geminiSpeechConfigured()) {
-      res.status(503).json({ error: "gemini_tts_not_configured" });
+    if (!speechConfigured()) {
+      res.status(503).json({ error: "tts_not_configured" });
       return;
     }
 
-    const speech = await generateRiskAlertSpeech(parsed.data);
+    const speech = await generateSpeech(parsed.data);
     res.json(speech);
   })
 );

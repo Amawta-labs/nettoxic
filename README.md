@@ -107,7 +107,11 @@ Copiar `backend/.env.example` a `backend/.env` y configurar:
 - `INGEST_API_KEY`: opcional. Si esta configurado, `POST /ingest/*` exige `X-Nettoxic-Ingest-Key`.
 - `ANTHROPIC_API_KEY`
 - `AI_GATEWAY_API_KEY`, solo si se usa Vercel AI Gateway localmente.
-- `GEMINI_API_KEY`, para generar audio TTS de alertas de accesibilidad desde el backend.
+- `TTS_PROVIDER`, `auto`, `elevenlabs` o `gemini`. Default efectivo: ElevenLabs si hay key.
+- `ELEVENLABS_API_KEY`, para generar audio TTS corto de alertas de accesibilidad.
+- `ELEVENLABS_MODEL_ID`, default `eleven_flash_v2_5`.
+- `ELEVENLABS_VOICE_ID`, default `JBFqnCBsd6RMkjVDRZzb`.
+- `GEMINI_API_KEY`, fallback opcional para generar audio TTS desde el backend.
 - `GEMINI_TTS_MODEL`, default `gemini-3.1-flash-tts-preview`.
 - `GEMINI_TTS_VOICE`, default `Kore`.
 - `URLHAUS_AUTH_KEY`, requerido para consultar URLhaus.
@@ -131,7 +135,8 @@ paquete retenido, premio falso, soporte falso y transferencia urgente, y devuelv
 `debug.embedding`.
 
 La voz de alerta usa `POST /speech/risk-alert`: el telefono recibe `speakText` en la push,
-solicita un WAV al backend y lo reproduce localmente. La clave Gemini nunca se expone en Expo.
+solicita audio corto al backend y lo reproduce localmente. Las claves ElevenLabs/Gemini nunca
+se exponen en Expo.
 
 ## Variables Mobile
 
