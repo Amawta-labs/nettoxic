@@ -61,8 +61,8 @@ public final class AwkiMessageRiskEngine {
     byte[] body = payload.toString().getBytes(StandardCharsets.UTF_8);
     HttpURLConnection connection = (HttpURLConnection) new URL(ingestUrl).openConnection();
     connection.setRequestMethod("POST");
-    connection.setConnectTimeout(5000);
-    connection.setReadTimeout(10000);
+    connection.setConnectTimeout(8000);
+    connection.setReadTimeout(30000);
     connection.setDoOutput(true);
     connection.setRequestProperty("Content-Type", "application/json");
     connection.setRequestProperty("User-Agent", "Awki-Android-Proactive/0.1");
