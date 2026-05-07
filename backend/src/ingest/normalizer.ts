@@ -16,6 +16,17 @@ export const EmailIngestSchema = z.object({
   receivedAt: z.string().optional()
 });
 
+export const AppMessageIngestSchema = z.object({
+  id: z.string().optional(),
+  sourceApp: z.string().min(1).max(80),
+  sourcePackage: z.string().min(1).max(140).optional(),
+  captureMethod: z.enum(["notification", "accessibility", "overlay"]).default("notification"),
+  sender: z.string().optional(),
+  subject: z.string().optional(),
+  content: z.string().min(1),
+  receivedAt: z.string().optional()
+});
+
 export const AudioIngestSchema = z.object({
   id: z.string().optional(),
   sender: z.string().optional(),
@@ -58,6 +69,18 @@ export function normalizeEmailInput(input: z.infer<typeof EmailIngestSchema>): I
     source: "email",
     sender: input.sender,
     subject: input.subject,
+    content: input.content
+  };
+}
+
+export function normalizeAppMessageInput(input: z.infer<typeof AppMessageIngestSchema>): IncomingMessage {
+  const sender = input.sender ?? input.sourceApp;
+  const subject = input.subject ?? `${input.sourceApp} · ${input.captureMethod}`;
+  return {
+    id: input.id ?? `app-message-${Date.now()}`,
+    source: "app_message",
+    sender,
+    subject,
     content: input.content
   };
 }

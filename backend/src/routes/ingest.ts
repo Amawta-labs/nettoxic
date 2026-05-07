@@ -1,7 +1,9 @@
 import { Router } from "express";
 import {
+  AppMessageIngestSchema,
   AudioIngestSchema,
   EmailIngestSchema,
+  normalizeAppMessageInput,
   normalizeAudioTranscriptInput,
   normalizeEmailInput,
   normalizeSmsInput,
@@ -37,6 +39,28 @@ ingestRouter.post("/sms", asyncRoute(async (req, res) => {
   const analysis = await analyzeMessage(message);
   const item = await recordAnalyzedInboxItem(message, analysis);
   res.json({ item, analysis });
+}));
+
+ingestRouter.post("/app-message", asyncRoute(async (req, res) => {
+  if (!authorized(req)) {
+    res.status(401).json({ error: "unauthorized" });
+    return;
+  }
+
+  const parsed = AppMessageIngestSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "invalid_app_message_ingest", details: parsed.error.flatten() });
+    return;
+  }
+
+  const message = normalizeAppMessageInput(parsed.data);
+  const analysis = await analyzeMessage(message);
+  const item = await recordAnalyzedInboxItem(message, analysis);
+  const push = await notifyRiskItem(item).catch((error) => {
+    console.error("Failed to send risk push notification", error);
+    return { attempted: 0, sent: 0, skipped: 0, errors: [error instanceof Error ? error.message : "push_error"] };
+  });
+  res.json({ item, analysis, push });
 }));
 
 ingestRouter.post("/audio", asyncRoute(async (req, res) => {

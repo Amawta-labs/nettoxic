@@ -24,7 +24,8 @@
         "RECEIVE_SMS",
         "READ_SMS",
         "POST_NOTIFICATIONS",
-        "VIBRATE"
+        "VIBRATE",
+        "SYSTEM_ALERT_WINDOW"
       ]
     },
     "plugins": [

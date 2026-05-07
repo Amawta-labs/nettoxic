@@ -35,6 +35,29 @@ http://127.0.0.1:8787/ingest/sms
 
 Para produccion, cambiar `ingestUrl` en `mobile/app.json` a HTTPS.
 
+## Mensajería proactiva / WhatsApp / Telegram
+
+Artefactos versionados:
+
+- `mobile/native/android/AwkiMessageRiskEngine.java`
+- `mobile/native/android/AwkiRiskOverlay.java`
+- `mobile/native/android/NettoxicNotificationListenerService.java`
+- `mobile/native/android/NettoxicAccessibilityService.java`
+- `mobile/native/android/awki_accessibility_service.xml`
+- `backend/src/routes/ingest.ts`
+
+Flujo:
+
+1. El usuario activa manualmente `Notification access`, `Accessibility` y, opcionalmente, `Display over other apps`.
+2. `NotificationListenerService` captura notificaciones entrantes de WhatsApp/Telegram con texto visible.
+3. `AccessibilityService` observa texto visible cuando el usuario abre chats soportados.
+4. Android llama `POST /ingest/app-message`.
+5. El backend analiza con el orquestador antifraude.
+6. Si el riesgo es medio/alto, Android muestra notificación local y overlay si el permiso está activo.
+
+Esto no lee bases privadas de WhatsApp ni rompe cifrado. Solo analiza contenido visible o entregado por
+notificaciones/permisos explícitos del usuario.
+
 ## Gmail
 
 Artefactos versionados:

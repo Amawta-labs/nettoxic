@@ -40,6 +40,9 @@ Nettoxic recibe señales reales antes del análisis por adaptadores de canal:
   El plugin `mobile/plugins/withNettoxicSmsIngest.js` inyecta permisos, receiver y URL de ingest en Android.
   Al llegar un SMS, el receiver llama `POST /ingest/sms`, recibe el análisis y emite una notificación local si
   el riesgo es medio o superior.
+- Mensajería proactiva: `NotificationListenerService` y `AccessibilityService` nativos capturan texto de
+  WhatsApp/Telegram cuando el usuario autoriza los permisos de sistema. El servicio llama
+  `POST /ingest/app-message` y puede mostrar alerta local/overlay tipo Truecaller.
 - Audios sospechosos: `POST /ingest/audio` recibe audio base64 (`opus`, `m4a`, `mp3`, `wav`, etc.),
   transcribe con ElevenLabs Scribe o acepta una transcripción local, y analiza el texto con el mismo
   orquestador antifraude.
