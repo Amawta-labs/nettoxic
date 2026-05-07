@@ -24,7 +24,14 @@ speechRouter.post(
       return;
     }
 
-    const speech = await generateSpeech(parsed.data);
-    res.json(speech);
+    try {
+      const speech = await generateSpeech(parsed.data);
+      res.json(speech);
+    } catch {
+      res.status(503).json({
+        error: "tts_upstream_unavailable",
+        deviceFallback: true
+      });
+    }
   })
 );
