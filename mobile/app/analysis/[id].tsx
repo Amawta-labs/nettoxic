@@ -1,4 +1,5 @@
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { reportCase } from "../../src/api/client";
 import { AwkiMark } from "../../src/components/AwkiMark";
@@ -134,14 +135,20 @@ export default function AnalysisScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const id = typeof params.id === "string" ? params.id : null;
-  const { getItem, mockMode } = useInbox();
+  const { getItem, loading, mockMode, reload } = useInbox();
   const item = getItem(id);
+
+  useEffect(() => {
+    if (id && !item && !loading) {
+      reload().catch(() => undefined);
+    }
+  }, [id, item, loading, reload]);
 
   if (!item) {
     return (
       <Screen>
         <View style={styles.missing}>
-          <Text style={styles.missingText}>Mensaje no encontrado.</Text>
+          <Text style={styles.missingText}>{loading ? "Cargando análisis..." : "Mensaje no encontrado."}</Text>
         </View>
       </Screen>
     );

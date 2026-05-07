@@ -8,6 +8,7 @@ type ExpoPushMessage = {
   body: string;
   priority: "high";
   channelId: string;
+  categoryId: string;
   data: Record<string, string | number | boolean | null>;
 };
 
@@ -40,20 +41,45 @@ function chunks<T>(items: T[], size: number) {
   return grouped;
 }
 
+function riskLabel(score: number) {
+  if (score >= 85) return "riesgo crítico";
+  if (score >= 65) return "riesgo alto";
+  if (score >= 35) return "revisar";
+  return "riesgo bajo";
+}
+
+function sourceLabel(item: StoredInboxItem) {
+  if (item.source === "email") return "Correo";
+  if (item.source === "sms") return "SMS";
+  if (item.source === "app_message") return item.sender || "Mensaje";
+  if (item.source === "audio") return "Audio";
+  return "Mensaje";
+}
+
+function compactText(value: string | undefined, fallback: string, maxLength = 42) {
+  const clean = (value ?? "").replace(/[<>"']/g, "").replace(/\s+/g, " ").trim();
+  const text = clean || fallback;
+  return text.length > maxLength ? `${text.slice(0, maxLength - 1).trim()}…` : text;
+}
+
+function notificationBody(item: StoredInboxItem) {
+  const source = sourceLabel(item);
+  const subject = compactText(item.subject, item.analysis.entidad_suplantada ?? item.preview ?? "mensaje sospechoso");
+  return `${source} · ${subject} · ${riskLabel(item.analysis.score)}`;
+}
+
 function messageForItem(item: StoredInboxItem): Omit<ExpoPushMessage, "to"> {
   const spokenEntity = item.analysis.entidad_suplantada ?? item.sender ?? "un mensaje sospechoso";
-  const pushBody = item.analysis.entidad_suplantada
-    ? `No respondas. No abras enlaces. ${item.analysis.entidad_suplantada} no pide claves por mensaje.`
-    : "No respondas. No abras enlaces. No compartas claves.";
   const speakText =
     `Alerta Awki. Posible estafa en ${spokenEntity}. ` +
     "No respondas. No abras enlaces. No compartas claves.";
   return {
     sound: "default",
-    title: "Awki: posible estafa",
-    body: pushBody,
+    title: "Awki: revisa antes de abrir",
+    body: notificationBody(item),
     priority: "high",
     channelId: "risk-alerts",
+    categoryId: "risk-alert",
     data: {
       type: "risk_alert",
       itemId: item.id,
@@ -61,6 +87,7 @@ function messageForItem(item: StoredInboxItem): Omit<ExpoPushMessage, "to"> {
       score: item.analysis.score,
       nivel: item.analysis.nivel,
       speakText,
+      categoryId: "risk-alert",
       route: `/analysis/${item.id}`
     }
   };
