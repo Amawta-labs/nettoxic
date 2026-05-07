@@ -1,0 +1,449 @@
+[
+  {
+    "name": "extract_urls",
+    "description": "Extrae URLs desde un email, SMS o texto sospechoso antes de enviar el contenido al evaluador final.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Contenido textual del mensaje sospechoso."
+        }
+      },
+      "required": ["content"]
+    },
+    "output_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "urls": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "suspiciousDomains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["urls", "suspiciousDomains"]
+    }
+  },
+  {
+    "name": "lookup_phishtank",
+    "description": "Consulta reputacion de URLs contra PhishTank y devuelve solo matches verificados por la API.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "urls": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": "URLs extraidas del mensaje."
+        }
+      },
+      "required": ["urls"]
+    },
+    "output_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "checked": {
+          "type": "boolean"
+        },
+        "matched": {
+          "type": "boolean"
+        },
+        "matches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "phishId": {
+                "type": "string"
+              },
+              "detailUrl": {
+                "type": "string",
+                "format": "uri"
+              },
+              "verified": {
+                "type": "boolean"
+              },
+              "valid": {
+                "type": "boolean"
+              }
+            },
+            "required": ["url", "verified", "valid"]
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["checked", "matched", "matches", "errors"]
+    }
+  },
+  {
+    "name": "lookup_urlhaus",
+    "description": "Consulta URLhaus para detectar URLs maliciosas activas reportadas por abuse.ch.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "urls": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": "URLs a evaluar."
+        }
+      },
+      "required": ["urls"]
+    },
+    "output_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "checked": {
+          "type": "boolean"
+        },
+        "matched": {
+          "type": "boolean"
+        },
+        "matches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "status": {
+                "type": "string"
+              },
+              "threat": {
+                "type": "string"
+              },
+              "reference": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": ["url", "status", "threat"]
+          }
+        }
+      },
+      "required": ["checked", "matched", "matches"]
+    }
+  },
+  {
+    "name": "detect_chilean_entity",
+    "description": "Detecta menciones a entidades chilenas usadas en suplantacion: BancoEstado, SII, CMF, AFP, Correos, retail o bancos.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sender": {
+          "type": ["string", "null"],
+          "description": "Remitente si existe."
+        },
+        "subject": {
+          "type": ["string", "null"],
+          "description": "Asunto si existe."
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Contenido textual del mensaje."
+        }
+      },
+      "required": ["content"]
+    },
+    "output_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "entity": {
+          "type": ["string", "null"],
+          "description": "Entidad chilena detectada o null si no hay match."
+        }
+      },
+      "required": ["entity"]
+    }
+  },
+  {
+    "name": "lookup_cmf_alerts",
+    "description": "Consulta el listado publico de Alertas CMF y devuelve coincidencias verificables por dominio o nombre de entidad no supervisada.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sender": {
+          "type": ["string", "null"],
+          "description": "Remitente si existe."
+        },
+        "subject": {
+          "type": ["string", "null"],
+          "description": "Asunto si existe."
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Contenido textual del mensaje."
+        },
+        "urls": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": "URLs extraidas del mensaje."
+        }
+      },
+      "required": ["content"]
+    },
+    "output_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "checked": {
+          "type": "boolean"
+        },
+        "matched": {
+          "type": "boolean"
+        },
+        "matches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "sourceUrl": {
+                "type": "string",
+                "format": "uri"
+              },
+              "category": {
+                "type": "string"
+              },
+              "entity": {
+                "type": "string"
+              },
+              "matchedBy": {
+                "type": "string",
+                "enum": ["domain", "entity"]
+              },
+              "evidence": {
+                "type": "string"
+              }
+            },
+            "required": ["sourceUrl", "category", "entity", "matchedBy", "evidence"]
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sourceUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "fetchedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["checked", "matched", "matches", "errors", "sourceUrl"]
+    }
+  },
+  {
+    "name": "match_pattern_embeddings",
+    "description": "Compara el mensaje contra patrones de fraude conocidos en Chile mediante similitud semantica local.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "type": "string",
+          "minLength": 12,
+          "description": "Texto normalizado del mensaje."
+        },
+        "topK": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 3,
+          "description": "Cantidad maxima de patrones similares a devolver."
+        }
+      },
+      "required": ["content"]
+    },
+    "output_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "provider": {
+          "type": "string"
+        },
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "category": {
+          "type": ["string", "null"]
+        },
+        "label": {
+          "type": ["string", "null"]
+        },
+        "evidence": {
+          "type": ["string", "null"]
+        },
+        "matches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "category": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "score": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "evidence": {
+                "type": "string"
+              },
+              "matchedTerms": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": ["id", "category", "label", "score", "evidence", "matchedTerms"]
+          }
+        }
+      },
+      "required": ["provider", "score", "category", "label", "evidence", "matches"]
+    }
+  },
+  {
+    "name": "detect_security_rules",
+    "description": "Evalua las seis señales locales de fraude: urgencia, credenciales, dominio no oficial, suplantacion, amenaza y redireccion.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Contenido textual del mensaje."
+        },
+        "sender": {
+          "type": ["string", "null"],
+          "description": "Remitente si existe."
+        },
+        "urls": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": "URLs extraidas previamente."
+        },
+        "suspiciousDomains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Dominios marcados como no oficiales o sospechosos."
+        }
+      },
+      "required": ["content", "urls", "suspiciousDomains"]
+    },
+    "output_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "signals": {
+          "type": "array",
+          "minItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string",
+                "enum": [
+                  "urgencia_artificial",
+                  "solicitud_credenciales",
+                  "dominio_no_oficial",
+                  "suplantacion_entidad",
+                  "amenaza_consecuencia",
+                  "redireccion_sospechosa"
+                ]
+              },
+              "label": {
+                "type": "string"
+              },
+              "present": {
+                "type": "boolean"
+              },
+              "evidence": {
+                "type": "string"
+              }
+            },
+            "required": ["key", "label", "present"]
+          }
+        }
+      },
+      "required": ["signals"]
+    }
+  }
+]

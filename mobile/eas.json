@@ -1,0 +1,35 @@
+{
+  "cli": {
+    "version": ">= 14.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "environment": "development",
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://nettoxic-backend-production.up.railway.app",
+        "EXPO_PUBLIC_SMS_INGEST_URL": "https://nettoxic-backend-production.up.railway.app/ingest/sms",
+        "EXPO_PUBLIC_NETTOXIC_USER_ID": "daslav",
+        "EXPO_PUBLIC_EAS_PROJECT_ID": "8fad04b4-0f8c-4772-9aef-1386b9e29899"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "environment": "preview",
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://nettoxic-backend-production.up.railway.app",
+        "EXPO_PUBLIC_SMS_INGEST_URL": "https://nettoxic-backend-production.up.railway.app/ingest/sms",
+        "EXPO_PUBLIC_NETTOXIC_USER_ID": "daslav",
+        "EXPO_PUBLIC_EAS_PROJECT_ID": "8fad04b4-0f8c-4772-9aef-1386b9e29899"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  }
+}

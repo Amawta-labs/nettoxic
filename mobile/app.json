@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "Awki",
+    "slug": "nettoxic",
+    "scheme": "nettoxic",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/brand/awki-logo.png",
+    "splash": {
+      "image": "./assets/brand/awki-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F4EFE5"
+    },
+    "android": {
+      "package": "cl.nettoxic.app",
+      "googleServicesFile": "./google-services.json",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/brand/awki-logo.png",
+        "backgroundColor": "#F4EFE5"
+      },
+      "permissions": [
+        "INTERNET",
+        "RECEIVE_SMS",
+        "READ_SMS",
+        "POST_NOTIFICATIONS",
+        "VIBRATE"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-asset",
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "color": "#1F4642",
+          "defaultChannel": "risk-alerts"
+        }
+      ],
+      "./plugins/withNettoxicSmsIngest"
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "8fad04b4-0f8c-4772-9aef-1386b9e29899"
+      }
+    },
+    "owner": "daslav"
+  }
+}

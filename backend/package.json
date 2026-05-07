@@ -1,0 +1,30 @@
+{
+  "name": "nettoxic-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc -p tsconfig.json",
+    "test": "tsx src/fixtures/runTestCases.ts",
+    "rubric:check": "tsx src/fixtures/validateRubricArtifacts.ts",
+    "anthropic:evidence": "tsx src/fixtures/runAnthropicEvidence.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.75",
+    "ai": "^6.0.175",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "googleapis": "^144.0.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
