@@ -48,6 +48,9 @@ export async function recordAnalyzedInboxItem(message: IncomingMessage, analysis
     receivedAt: now,
     analysis
   };
+  if (message.source === "app_message" && analysis.score < 35) {
+    return item;
+  }
   const existing = await readItems();
   const withoutDuplicate = existing.filter((entry) => entry.id !== id);
   await writeItems([item, ...withoutDuplicate]);
@@ -55,5 +58,7 @@ export async function recordAnalyzedInboxItem(message: IncomingMessage, analysis
 }
 
 export async function listAnalyzedInboxItems(limit = 50): Promise<StoredInboxItem[]> {
-  return (await readItems()).slice(0, limit);
+  return (await readItems())
+    .filter((entry) => entry.source !== "app_message" || entry.analysis.score >= 35)
+    .slice(0, limit);
 }
