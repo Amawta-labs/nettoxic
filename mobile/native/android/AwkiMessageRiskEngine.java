@@ -24,7 +24,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -111,13 +110,14 @@ public final class AwkiMessageRiskEngine {
       Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT : PendingIntent.FLAG_UPDATE_CURRENT
     );
 
-    String level = analysis.optString("nivel", "riesgo").toUpperCase(Locale.ROOT);
-    String explanation = analysis.optString("explicacion", "Revisa este mensaje antes de abrir enlaces o entregar datos.");
+    String title = shortTitle(analysis);
+    String body = shortBody(analysis);
+    String detail = body + "\n" + shortSource(capture);
     NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
       .setSmallIcon(android.R.drawable.stat_sys_warning)
-      .setContentTitle("Awki: " + level + " · " + score + "/100")
-      .setContentText(explanation)
-      .setStyle(new NotificationCompat.BigTextStyle().bigText(explanation + "\nApp: " + capture.sourceApp + "\nDe: " + capture.sender))
+      .setContentTitle(title)
+      .setContentText(body)
+      .setStyle(new NotificationCompat.BigTextStyle().bigText(detail))
       .setPriority(NotificationCompat.PRIORITY_HIGH)
       .setCategory(NotificationCompat.CATEGORY_ALARM)
       .setDefaults(NotificationCompat.DEFAULT_ALL)
@@ -129,6 +129,34 @@ public final class AwkiMessageRiskEngine {
     manager.notify(("awki-proactive-" + capture.id).hashCode(), builder.build());
     vibrate(context);
     AwkiRiskOverlay.show(context, capture, analysis);
+  }
+
+  static String shortTitle(JSONObject analysis) {
+    int score = analysis.optInt("score", 0);
+    if (score >= 70) return "Awki: posible estafa";
+    return "Awki: revisa este mensaje";
+  }
+
+  static String shortBody(JSONObject analysis) {
+    String entity = cleanEntity(analysis.optString("entidad_suplantada", ""));
+    if (!entity.isEmpty()) {
+      return "No respondas. No abras enlaces. " + entity + " no pide claves por mensaje.";
+    }
+    return "No respondas. No abras enlaces. No compartas claves.";
+  }
+
+  static String shortSource(Capture capture) {
+    String app = capture.sourceApp == null || capture.sourceApp.trim().isEmpty() ? "mensaje" : capture.sourceApp.trim();
+    String sender = capture.sender == null ? "" : capture.sender.trim();
+    if (sender.isEmpty() || sender.equals(app)) return "Detectado en " + app + ".";
+    return "Detectado en " + app + " de " + sender + ".";
+  }
+
+  private static String cleanEntity(String value) {
+    if (value == null) return "";
+    String clean = value.trim();
+    if (clean.isEmpty() || clean.equalsIgnoreCase("null")) return "";
+    return clean;
   }
 
   private static void vibrate(Context context) {

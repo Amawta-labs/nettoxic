@@ -45,17 +45,17 @@ public final class AwkiRiskOverlay {
         container.setBackground(background);
 
         TextView title = new TextView(context);
-        title.setText("Awki: posible estafa · " + analysis.optInt("score", 0) + "/100");
+        title.setText("Posible estafa");
         title.setTextColor(Color.rgb(120, 22, 18));
-        title.setTextSize(18);
+        title.setTextSize(22);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         container.addView(title);
 
         TextView body = new TextView(context);
-        body.setText(analysis.optString("explicacion", "No respondas ni entregues claves.") + "\n" + capture.sourceApp + ": " + capture.sender);
+        body.setText(AwkiMessageRiskEngine.shortBody(analysis) + "\n" + AwkiMessageRiskEngine.shortSource(capture));
         body.setTextColor(Color.rgb(50, 35, 32));
-        body.setTextSize(14);
-        body.setPadding(0, 8, 0, 0);
+        body.setTextSize(17);
+        body.setPadding(0, 10, 0, 0);
         container.addView(body);
 
         int type = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O

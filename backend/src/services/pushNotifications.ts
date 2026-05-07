@@ -41,16 +41,17 @@ function chunks<T>(items: T[], size: number) {
 }
 
 function messageForItem(item: StoredInboxItem): Omit<ExpoPushMessage, "to"> {
-  const subject = item.subject ?? "Mensaje sospechoso";
-  const level = item.analysis.nivel.toUpperCase();
   const spokenEntity = item.analysis.entidad_suplantada ?? item.sender ?? "un mensaje sospechoso";
+  const pushBody = item.analysis.entidad_suplantada
+    ? `No respondas. No abras enlaces. ${item.analysis.entidad_suplantada} no pide claves por mensaje.`
+    : "No respondas. No abras enlaces. No compartas claves.";
   const speakText =
-    `Alerta Awki. Riesgo ${item.analysis.nivel}, ${item.analysis.score} de 100. ` +
-    `Posible estafa en ${spokenEntity}. No abras enlaces ni entregues claves.`;
+    `Alerta Awki. Posible estafa en ${spokenEntity}. ` +
+    "No respondas. No abras enlaces. No compartas claves.";
   return {
     sound: "default",
-    title: "Nettoxic: alerta antes del clic",
-    body: `${level} ${item.analysis.score}/100 - ${subject}`,
+    title: "Awki: posible estafa",
+    body: pushBody,
     priority: "high",
     channelId: "risk-alerts",
     data: {
