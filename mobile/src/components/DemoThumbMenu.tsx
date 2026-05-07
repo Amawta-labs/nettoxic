@@ -1,9 +1,10 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useInbox } from "../state/InboxContext";
-import { colors, radius, shadow, spacing, typography } from "../theme";
+import { colors, layout, radius, shadow, spacing, typography } from "../theme";
 
 type DemoScreen = "login" | "inbox" | "detail" | "action" | "manual";
 
@@ -27,39 +28,39 @@ const targets: DemoTarget[] = [
   { key: "manual", label: "Probar", icon: "shield-search", preview: "manual" }
 ];
 
-function MiniPreview({ type, active }: { type: DemoTarget["preview"]; active: boolean }) {
+function MiniPreview({ type, active, compact = false }: { type: DemoTarget["preview"]; active: boolean; compact?: boolean }) {
   return (
-    <View style={[styles.preview, active && styles.previewActive]}>
+    <View style={[styles.preview, compact && styles.previewCompact, active && styles.previewActive]}>
       {type === "inbox" ? (
         <>
-          <View style={styles.previewHeader} />
-          <View style={styles.previewTab} />
-          <View style={[styles.previewLine, styles.previewLineDanger]} />
-          <View style={styles.previewLine} />
-          <View style={styles.previewLineShort} />
+          <View style={[styles.previewHeader, compact && styles.previewHeaderCompact]} />
+          <View style={[styles.previewTab, compact && styles.previewTabCompact]} />
+          <View style={[styles.previewLine, compact && styles.previewLineCompact, styles.previewLineDanger]} />
+          <View style={[styles.previewLine, compact && styles.previewLineCompact]} />
+          {!compact ? <View style={styles.previewLineShort} /> : null}
         </>
       ) : null}
       {type === "detail" ? (
         <>
-          <View style={styles.previewDangerBox} />
-          <View style={[styles.previewLine, styles.previewLineDanger]} />
-          <View style={styles.previewRow} />
-          <View style={styles.previewRow} />
+          <View style={[styles.previewDangerBox, compact && styles.previewDangerBoxCompact]} />
+          <View style={[styles.previewLine, compact && styles.previewLineCompact, styles.previewLineDanger]} />
+          <View style={[styles.previewRow, compact && styles.previewRowCompact]} />
+          {!compact ? <View style={styles.previewRow} /> : null}
         </>
       ) : null}
       {type === "steps" ? (
         <>
-          <View style={styles.previewShield} />
-          <View style={styles.previewStep} />
-          <View style={styles.previewStep} />
-          <View style={styles.previewButton} />
+          <View style={[styles.previewShield, compact && styles.previewShieldCompact]} />
+          <View style={[styles.previewStep, compact && styles.previewStepCompact]} />
+          <View style={[styles.previewStep, compact && styles.previewStepCompact]} />
+          {!compact ? <View style={styles.previewButton} /> : null}
         </>
       ) : null}
       {type === "manual" ? (
         <>
-          <View style={styles.previewHeader} />
-          <View style={styles.previewInput} />
-          <View style={styles.previewButton} />
+          <View style={[styles.previewHeader, compact && styles.previewHeaderCompact]} />
+          <View style={[styles.previewInput, compact && styles.previewInputCompact]} />
+          <View style={[styles.previewButton, compact && styles.previewButtonCompact]} />
         </>
       ) : null}
     </View>
@@ -151,7 +152,135 @@ export function DemoThumbMenu({ active, analysisId }: DemoThumbMenuProps) {
   );
 }
 
+function activeFromPath(pathname: string): DemoScreen {
+  if (pathname.startsWith("/login")) return "login";
+  if (pathname.startsWith("/analysis")) return "detail";
+  if (pathname.startsWith("/action")) return "action";
+  if (pathname.startsWith("/manual")) return "manual";
+  return "inbox";
+}
+
+export function StickyDemoThumbNav() {
+  const pathname = usePathname();
+  const params = useLocalSearchParams();
+  const router = useRouter();
+  const { items } = useInbox();
+  const insets = useSafeAreaInsets();
+  const active = activeFromPath(pathname);
+  const idParam = typeof params.id === "string" ? params.id : null;
+  const selectedAnalysisId = idParam ?? items.find((item) => item.analysis.score >= 35)?.id ?? items[0]?.id ?? null;
+
+  function go(target: DemoScreen) {
+    if (target === "inbox") {
+      router.push("/");
+      return;
+    }
+    if (target === "login") {
+      router.push("/login");
+      return;
+    }
+    if (target === "detail" && selectedAnalysisId) {
+      router.push(`/analysis/${selectedAnalysisId}`);
+      return;
+    }
+    if (target === "action") {
+      router.push({ pathname: "/action", params: selectedAnalysisId ? { id: selectedAnalysisId } : {} });
+      return;
+    }
+    if (target === "manual") {
+      router.push("/manual");
+    }
+  }
+
+  return (
+    <View pointerEvents="box-none" style={[styles.dockOverlay, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
+      <View style={styles.dockShell}>
+        <View style={styles.dockTrack}>
+          {targets.map((target) => {
+            const isActive = target.key === active;
+            const disabled = (target.key === "detail" || target.key === "action") && !selectedAnalysisId;
+            return (
+              <Pressable
+                key={target.key}
+                style={[styles.dockItem, isActive && styles.dockItemActive, disabled && styles.dockItemDisabled]}
+                onPress={() => go(target.key)}
+                disabled={disabled}
+              >
+                <MiniPreview type={target.preview} active={isActive} compact />
+                <View style={styles.dockLabelRow}>
+                  <MaterialCommunityIcons name={target.icon} size={12} color={isActive ? colors.primary : colors.muted} />
+                  <Text style={[styles.dockLabel, isActive && styles.dockLabelActive]} numberOfLines={1}>
+                    {target.label}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  dockOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 50,
+    paddingHorizontal: spacing.sm,
+    paddingTop: spacing.sm
+  },
+  dockShell: {
+    minHeight: layout.demoDockReservedHeight - spacing.md,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: "rgba(255, 252, 244, 0.97)",
+    paddingVertical: spacing.sm,
+    paddingHorizontal: 6,
+    ...shadow
+  },
+  dockTrack: {
+    flexDirection: "row",
+    gap: 4
+  },
+  dockItem: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 82,
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: "transparent",
+    padding: 4,
+    gap: 4
+  },
+  dockItemActive: {
+    backgroundColor: "#F5EFE0",
+    borderColor: colors.primary
+  },
+  dockItemDisabled: {
+    opacity: 0.45
+  },
+  dockLabelRow: {
+    minHeight: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 3
+  },
+  dockLabel: {
+    maxWidth: 42,
+    color: colors.muted,
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 9
+  },
+  dockLabelActive: {
+    color: colors.primary
+  },
   trigger: {
     width: 38,
     height: 38,
@@ -271,6 +400,14 @@ const styles = StyleSheet.create({
     padding: 8,
     gap: 6
   },
+  previewCompact: {
+    alignSelf: "stretch",
+    width: "100%",
+    height: 46,
+    padding: 4,
+    gap: 3,
+    borderRadius: 9
+  },
   previewActive: {
     backgroundColor: "#F5EFE0"
   },
@@ -280,17 +417,30 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: colors.primary
   },
+  previewHeaderCompact: {
+    width: 24,
+    height: 8,
+    borderRadius: 3
+  },
   previewTab: {
     width: "100%",
     height: 15,
     borderRadius: 5,
     backgroundColor: colors.primary
   },
+  previewTabCompact: {
+    height: 8,
+    borderRadius: 4
+  },
   previewLine: {
     width: "88%",
     height: 7,
     borderRadius: 4,
     backgroundColor: colors.border
+  },
+  previewLineCompact: {
+    height: 4,
+    borderRadius: 2
   },
   previewLineDanger: {
     backgroundColor: "#D87A69"
@@ -308,10 +458,18 @@ const styles = StyleSheet.create({
     borderColor: "#E1A89E",
     borderWidth: 1
   },
+  previewDangerBoxCompact: {
+    height: 15,
+    borderRadius: 5
+  },
   previewRow: {
     height: 13,
     borderRadius: 6,
     backgroundColor: colors.surface
+  },
+  previewRowCompact: {
+    height: 7,
+    borderRadius: 4
   },
   previewShield: {
     alignSelf: "center",
@@ -320,10 +478,19 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: colors.primary
   },
+  previewShieldCompact: {
+    width: 18,
+    height: 18,
+    borderRadius: 7
+  },
   previewStep: {
     height: 13,
     borderRadius: 6,
     backgroundColor: colors.surface
+  },
+  previewStepCompact: {
+    height: 7,
+    borderRadius: 4
   },
   previewInput: {
     height: 44,
@@ -332,10 +499,18 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderWidth: 1
   },
+  previewInputCompact: {
+    height: 22,
+    borderRadius: 6
+  },
   previewButton: {
     height: 12,
     borderRadius: 6,
     backgroundColor: colors.primary
+  },
+  previewButtonCompact: {
+    height: 6,
+    borderRadius: 3
   },
   thumbFooter: {
     flexDirection: "row",

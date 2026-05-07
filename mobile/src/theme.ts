@@ -47,3 +47,7 @@ export const typography = {
   fontFamilyMedium: "NotoSans-Medium",
   fontFamilyBold: "NotoSans-Bold"
 };
+
+export const layout = {
+  demoDockReservedHeight: 116
+};

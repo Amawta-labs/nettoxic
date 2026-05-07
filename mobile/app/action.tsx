@@ -2,7 +2,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { reportCase } from "../src/api/client";
 import { AwkiMark } from "../src/components/AwkiMark";
-import { DemoThumbMenu } from "../src/components/DemoThumbMenu";
 import { Screen } from "../src/components/Screen";
 import { useInbox } from "../src/state/InboxContext";
 import { colors, radius, shadow, spacing, typography } from "../src/theme";
@@ -82,7 +81,7 @@ export default function ActionScreen() {
             <ActionIcon name="back" size={31} color={colors.text} />
           </Pressable>
           <Text style={styles.topTitle}>Qué hacer ahora</Text>
-          <DemoThumbMenu active="action" analysisId={id} />
+          <View style={styles.backButtonPlaceholder} />
         </View>
 
         <View style={styles.hero}>

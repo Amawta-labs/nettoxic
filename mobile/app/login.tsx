@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, AppState, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { getCurrentGmailAccount, getGmailAuthUrl, syncGmailInbox, watchGmailInbox } from "../src/api/client";
 import { AwkiMark } from "../src/components/AwkiMark";
-import { DemoThumbMenu } from "../src/components/DemoThumbMenu";
 import { Screen } from "../src/components/Screen";
 import { useInbox } from "../src/state/InboxContext";
 import { colors, radius, shadow, spacing, typography } from "../src/theme";
@@ -139,11 +138,6 @@ export default function LoginScreen() {
   return (
     <Screen>
       <View style={styles.container}>
-        <View style={styles.topRow}>
-          <View />
-          <DemoThumbMenu active="login" />
-        </View>
-
         <View style={styles.brand}>
           <AwkiMark size={72} />
           <Text style={styles.logoText}>Awki</Text>
@@ -194,14 +188,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
     justifyContent: "center",
     gap: spacing.xl
-  },
-  topRow: {
-    position: "absolute",
-    top: spacing.md,
-    left: spacing.xl,
-    right: spacing.xl,
-    flexDirection: "row",
-    justifyContent: "space-between"
   },
   brand: {
     alignItems: "center",

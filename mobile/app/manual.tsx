@@ -4,7 +4,6 @@ import { useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { analyzeTextWithMeta } from "../src/api/client";
 import { AwkiMark } from "../src/components/AwkiMark";
-import { DemoThumbMenu } from "../src/components/DemoThumbMenu";
 import { Screen } from "../src/components/Screen";
 import { useInbox } from "../src/state/InboxContext";
 import { colors, radius, shadow, spacing, typography } from "../src/theme";
@@ -59,7 +58,7 @@ export default function ManualAnalysisScreen() {
               <MaterialCommunityIcons name="chevron-left" size={26} color={colors.text} />
             </Pressable>
             <Text style={styles.topTitle}>Revisar algo</Text>
-            <DemoThumbMenu active="manual" />
+            <View style={styles.backButtonPlaceholder} />
           </View>
 
           <View style={styles.hero}>

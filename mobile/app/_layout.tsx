@@ -7,6 +7,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { LogBox, Text, TextInput } from "react-native";
 import { InboxProvider } from "../src/state/InboxContext";
+import { StickyDemoThumbNav } from "../src/components/DemoThumbMenu";
 import {
   refreshRiskAlertsIfAlreadyGranted,
   routeFromNotification,
@@ -99,6 +100,7 @@ export default function RootLayout() {
         <Stack.Screen name="analysis/[id]" options={{ title: "Analisis" }} />
         <Stack.Screen name="action" options={{ title: "Que hacer ahora" }} />
       </Stack>
+      <StickyDemoThumbNav />
     </InboxProvider>
   );
 }

@@ -2,7 +2,6 @@ import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { reportCase } from "../../src/api/client";
 import { AwkiMark } from "../../src/components/AwkiMark";
-import { DemoThumbMenu } from "../../src/components/DemoThumbMenu";
 import { Screen } from "../../src/components/Screen";
 import { useInbox } from "../../src/state/InboxContext";
 import { colors, radius, shadow, spacing, typography } from "../../src/theme";
@@ -180,7 +179,6 @@ export default function AnalysisScreen() {
             <Text style={styles.navLabel}>{sourceLabel(item)}</Text>
             <Text style={styles.navTitle} numberOfLines={1}>{entityLine(item)}</Text>
           </View>
-          <DemoThumbMenu active="detail" analysisId={id} />
         </View>
 
         <View style={[styles.verdictCard, isFraud && styles.verdictDanger]}>

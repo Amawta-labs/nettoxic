@@ -3,7 +3,6 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
 import { ActivityIndicator, Alert, FlatList, PermissionsAndroid, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { AwkiMark } from "../src/components/AwkiMark";
-import { DemoThumbMenu } from "../src/components/DemoThumbMenu";
 import { RiskBadge } from "../src/components/RiskBadge";
 import { Screen } from "../src/components/Screen";
 import { registerRiskAlerts } from "../src/notifications/riskAlerts";
@@ -51,7 +50,6 @@ export default function InboxScreen() {
     () => items.filter((item) => (tab === "email" ? item.source !== "sms" : item.source === "sms")),
     [items, tab]
   );
-  const firstAnalysisId = useMemo(() => items.find((item) => item.analysis.score >= 35)?.id ?? items[0]?.id, [items]);
 
   async function enableSmsProtection() {
     if (Platform.OS !== "android") {
@@ -144,7 +142,6 @@ export default function InboxScreen() {
                 <Text style={styles.brandName}>Awki</Text>
               </View>
               <View style={styles.headerActions}>
-                <DemoThumbMenu active="inbox" analysisId={firstAnalysisId} />
                 <Pressable style={styles.avatar} onPress={reload}>
                   <Text style={styles.avatarText}>L</Text>
                 </Pressable>
