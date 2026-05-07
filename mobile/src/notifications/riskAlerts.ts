@@ -74,3 +74,16 @@ export function routeFromNotification(response: Notifications.NotificationRespon
   if (typeof itemId === "string") return `/analysis/${encodeURIComponent(itemId)}`;
   return null;
 }
+
+export function speechTextFromNotification(content: Notifications.NotificationContent) {
+  const speakText = content.data.speakText;
+  if (typeof speakText === "string" && speakText.trim()) return speakText.trim();
+
+  const score = content.data.score;
+  const nivel = content.data.nivel;
+  if ((typeof score === "number" || typeof score === "string") && typeof nivel === "string") {
+    return `Alerta Awki. Riesgo ${nivel}, ${score} de 100. No abras enlaces ni entregues claves.`;
+  }
+
+  return null;
+}

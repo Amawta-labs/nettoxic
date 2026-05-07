@@ -7,6 +7,7 @@ import { gmailRouter } from "./routes/gmail.js";
 import { ingestRouter } from "./routes/ingest.js";
 import { inboxRouter } from "./routes/inbox.js";
 import { reportRouter } from "./routes/report.js";
+import { speechRouter } from "./routes/speech.js";
 
 const app = express();
 const port = Number(process.env.PORT ?? 8787);
@@ -24,6 +25,7 @@ app.use("/gmail", gmailRouter);
 app.use("/ingest", ingestRouter);
 app.use("/inbox", inboxRouter);
 app.use("/report", reportRouter);
+app.use("/speech", speechRouter);
 
 app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error("Unhandled route error", error);

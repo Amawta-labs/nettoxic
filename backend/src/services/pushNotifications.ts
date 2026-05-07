@@ -43,6 +43,10 @@ function chunks<T>(items: T[], size: number) {
 function messageForItem(item: StoredInboxItem): Omit<ExpoPushMessage, "to"> {
   const subject = item.subject ?? "Mensaje sospechoso";
   const level = item.analysis.nivel.toUpperCase();
+  const spokenEntity = item.analysis.entidad_suplantada ?? item.sender ?? "un mensaje sospechoso";
+  const speakText =
+    `Alerta Awki. Riesgo ${item.analysis.nivel}, ${item.analysis.score} de 100. ` +
+    `Posible estafa en ${spokenEntity}. No abras enlaces ni entregues claves.`;
   return {
     sound: "default",
     title: "Nettoxic: alerta antes del clic",
@@ -55,6 +59,7 @@ function messageForItem(item: StoredInboxItem): Omit<ExpoPushMessage, "to"> {
       source: item.source,
       score: item.analysis.score,
       nivel: item.analysis.nivel,
+      speakText,
       route: `/analysis/${item.id}`
     }
   };
@@ -117,4 +122,3 @@ export async function notifyRiskItem(item: StoredInboxItem, options: { userId?: 
     skipped: result.skipped + invalidTokens
   };
 }
-

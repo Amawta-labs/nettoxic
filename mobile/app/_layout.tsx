@@ -7,7 +7,12 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { LogBox, Text, TextInput } from "react-native";
 import { InboxProvider } from "../src/state/InboxContext";
-import { refreshRiskAlertsIfAlreadyGranted, routeFromNotification } from "../src/notifications/riskAlerts";
+import {
+  refreshRiskAlertsIfAlreadyGranted,
+  routeFromNotification,
+  speechTextFromNotification
+} from "../src/notifications/riskAlerts";
+import { playRiskAlertVoice } from "../src/audio/riskVoice";
 import { colors } from "../src/theme";
 
 LogBox.ignoreAllLogs(true);
@@ -36,6 +41,7 @@ function NotificationBridge() {
 
   useEffect(() => {
     const openFromNotification = (response: Notifications.NotificationResponse) => {
+      playRiskAlertVoice(speechTextFromNotification(response.notification.request.content)).catch(() => undefined);
       const route = routeFromNotification(response);
       if (route) router.push(route);
     };
@@ -46,8 +52,14 @@ function NotificationBridge() {
       })
       .catch(() => undefined);
 
-    const subscription = Notifications.addNotificationResponseReceivedListener(openFromNotification);
-    return () => subscription.remove();
+    const receivedSubscription = Notifications.addNotificationReceivedListener((notification) => {
+      playRiskAlertVoice(speechTextFromNotification(notification.request.content)).catch(() => undefined);
+    });
+    const responseSubscription = Notifications.addNotificationResponseReceivedListener(openFromNotification);
+    return () => {
+      receivedSubscription.remove();
+      responseSubscription.remove();
+    };
   }, [router]);
 
   return null;

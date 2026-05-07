@@ -14,6 +14,13 @@ The backend deploy is configured in `backend/railway.json`.
 Required Railway variables are configured in the service environment. Do not
 commit secrets. Railway injects `PORT`; the app listens on `0.0.0.0:$PORT`.
 
+For the accessibility voice alert, configure these backend-only variables in
+Railway:
+
+- `GEMINI_API_KEY`
+- `GEMINI_TTS_MODEL=gemini-3.1-flash-tts-preview`
+- `GEMINI_TTS_VOICE=Kore`
+
 ## External Signals
 
 The orchestrator treats public sources and predictions as different evidence

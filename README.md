@@ -107,6 +107,9 @@ Copiar `backend/.env.example` a `backend/.env` y configurar:
 - `INGEST_API_KEY`: opcional. Si esta configurado, `POST /ingest/*` exige `X-Nettoxic-Ingest-Key`.
 - `ANTHROPIC_API_KEY`
 - `AI_GATEWAY_API_KEY`, solo si se usa Vercel AI Gateway localmente.
+- `GEMINI_API_KEY`, para generar audio TTS de alertas de accesibilidad desde el backend.
+- `GEMINI_TTS_MODEL`, default `gemini-3.1-flash-tts-preview`.
+- `GEMINI_TTS_VOICE`, default `Kore`.
 - `URLHAUS_AUTH_KEY`, requerido para consultar URLhaus.
 - `PHISHTANK_API_KEY`, opcional para mejorar cuota/atribucion en PhishTank.
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`.
@@ -126,6 +129,9 @@ La capa de embeddings no requiere credenciales externas: genera vectores locales
 tokens, n-gramas y conceptos de fraude, compara contra patrones como suplantacion bancaria, SII,
 paquete retenido, premio falso, soporte falso y transferencia urgente, y devuelve la similitud en
 `debug.embedding`.
+
+La voz de alerta usa `POST /speech/risk-alert`: el telefono recibe `speakText` en la push,
+solicita un WAV al backend y lo reproduce localmente. La clave Gemini nunca se expone en Expo.
 
 ## Variables Mobile
 

@@ -14,6 +14,14 @@ export type GmailAccountSummary = {
   updatedAt?: string;
 };
 
+export type RiskAlertSpeech = {
+  audioBase64: string;
+  mediaType: "audio/wav";
+  model: string;
+  voice: string;
+  text: string;
+};
+
 export class ApiError extends Error {
   constructor(message: string) {
     super(message);
@@ -177,4 +185,25 @@ export async function registerPushDevice(input: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input)
   });
+}
+
+export async function synthesizeRiskAlertSpeech(text: string): Promise<RiskAlertSpeech> {
+  const data = await fetchJson("/speech/risk-alert", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text })
+  });
+
+  const speech = data as Partial<RiskAlertSpeech>;
+  if (
+    typeof speech.audioBase64 !== "string" ||
+    speech.mediaType !== "audio/wav" ||
+    typeof speech.model !== "string" ||
+    typeof speech.voice !== "string" ||
+    typeof speech.text !== "string"
+  ) {
+    throw new ApiError("Respuesta /speech/risk-alert invalida");
+  }
+
+  return speech as RiskAlertSpeech;
 }
