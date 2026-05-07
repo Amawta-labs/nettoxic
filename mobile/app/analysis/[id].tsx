@@ -1,4 +1,3 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { reportCase } from "../../src/api/client";
@@ -8,6 +7,36 @@ import { Screen } from "../../src/components/Screen";
 import { useInbox } from "../../src/state/InboxContext";
 import { colors, radius, shadow, spacing, typography } from "../../src/theme";
 import type { FraudSignal, InboxItem } from "../../src/types";
+
+type DetailIconName = "back" | "alert" | "check" | "entity" | "urgency" | "key" | "link";
+
+function DetailIcon({ name, size = 22, color = colors.danger }: { name: DetailIconName; size?: number; color?: string }) {
+  const glyphs: Record<DetailIconName, string> = {
+    back: "‹",
+    alert: "!",
+    check: "✓",
+    entity: "ID",
+    urgency: "24",
+    key: "K",
+    link: "↗"
+  };
+
+  return (
+    <Text
+      style={[
+        styles.detailIconGlyph,
+        {
+          color,
+          fontSize: size,
+          lineHeight: Math.round(size * 1.08)
+        }
+      ]}
+      numberOfLines={1}
+    >
+      {glyphs[name]}
+    </Text>
+  );
+}
 
 function sourceLabel(item: InboxItem) {
   if (item.source === "sms") return "ANÁLISIS DEL MENSAJE";
@@ -34,34 +63,34 @@ function signalCard(signal: FraudSignal, item: InboxItem) {
   const key = signal.key;
   if (key === "suplantacion_entidad") {
     return {
-      icon: "account-alert-outline",
+      icon: "entity" as const,
       title: `Se hace pasar por ${item.analysis.entidad_suplantada ? "tu entidad" : "alguien confiable"}`,
       body: signal.evidence || "El remitente o el mensaje imita una entidad conocida."
     };
   }
   if (key === "urgencia_artificial" || key === "amenaza_consecuencia") {
     return {
-      icon: "clock-alert-outline",
+      icon: "urgency" as const,
       title: "Te están apurando",
       body: signal.evidence || "Usa presión o amenaza para que actúes sin verificar."
     };
   }
   if (key === "solicitud_credenciales") {
     return {
-      icon: "shield-key-outline",
+      icon: "key" as const,
       title: "Te pide tu clave",
       body: signal.evidence || "Un banco nunca pedirá tu clave o códigos por correo."
     };
   }
   if (key === "dominio_no_oficial" || key === "redireccion_sospechosa") {
     return {
-      icon: "link-variant-alert",
+      icon: "link" as const,
       title: "Te manda a un enlace riesgoso",
       body: signal.evidence || "El dominio no coincide con el canal oficial."
     };
   }
   return {
-    icon: "alert-outline",
+    icon: "alert" as const,
     title: signal.label,
     body: signal.evidence || "Awki encontró esta señal en el mensaje."
   };
@@ -119,7 +148,7 @@ export default function AnalysisScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.navRow}>
           <Pressable style={styles.navButton} onPress={() => router.back()}>
-            <MaterialCommunityIcons name="chevron-left" size={26} color={colors.text} />
+            <DetailIcon name="back" size={31} color={colors.text} />
           </Pressable>
           <View style={styles.navTitleBlock}>
             <Text style={styles.navLabel}>{sourceLabel(item)}</Text>
@@ -131,7 +160,7 @@ export default function AnalysisScreen() {
         <View style={[styles.verdictCard, isFraud && styles.verdictDanger]}>
           <View style={styles.verdictTop}>
             <View style={styles.alertIcon}>
-              <MaterialCommunityIcons name="alert-outline" size={26} color={colors.surface} />
+              <DetailIcon name="alert" size={32} color={colors.surface} />
             </View>
             <View style={styles.verdictCopy}>
               <Text style={styles.awkiSays}>AWKI DICE</Text>
@@ -145,8 +174,8 @@ export default function AnalysisScreen() {
           <Text style={styles.sectionTitle}>QUÉ ENCONTRÉ</Text>
           {cards.length === 0 ? (
             <View style={styles.signalRow}>
-              <View style={styles.signalIcon}>
-                <MaterialCommunityIcons name="check-circle-outline" size={22} color={colors.success} />
+              <View style={[styles.signalIcon, styles.signalIconSafe]}>
+                <DetailIcon name="check" size={24} color={colors.success} />
               </View>
               <View style={styles.signalCopy}>
                 <Text style={styles.signalTitle}>No hay señales fuertes</Text>
@@ -157,7 +186,7 @@ export default function AnalysisScreen() {
             cards.map((card) => (
               <View key={card.title} style={styles.signalRow}>
                 <View style={styles.signalIcon}>
-                  <MaterialCommunityIcons name={card.icon as keyof typeof MaterialCommunityIcons.glyphMap} size={22} color={colors.danger} />
+                  <DetailIcon name={card.icon} size={card.icon === "link" ? 24 : 21} color={colors.danger} />
                 </View>
                 <View style={styles.signalCopy}>
                   <Text style={styles.signalTitle}>{card.title}</Text>
@@ -177,7 +206,7 @@ export default function AnalysisScreen() {
 
         <Link href={{ pathname: "/action", params: { id: item.id } }} asChild>
           <Pressable style={styles.primaryButton}>
-            <MaterialCommunityIcons name="check" size={22} color={colors.surface} />
+            <DetailIcon name="check" size={23} color={colors.surface} />
             <Text style={styles.primaryButtonText}>Entendido, no voy a responder</Text>
           </Pressable>
         </Link>
@@ -204,7 +233,14 @@ const styles = StyleSheet.create({
   missingText: {
     color: colors.text,
     fontFamily: typography.fontFamily,
-    fontSize: 16,
+    fontSize: 16
+  },
+  detailIconGlyph: {
+    includeFontPadding: false,
+    color: colors.danger,
+    fontFamily: typography.fontFamilyBold,
+    textAlign: "center",
+    textAlignVertical: "center"
   },
   navRow: {
     flexDirection: "row",
@@ -227,13 +263,13 @@ const styles = StyleSheet.create({
   navLabel: {
     color: colors.muted,
     fontFamily: typography.fontFamily,
-    fontSize: 11,
+    fontSize: 11
   },
   navTitle: {
     marginTop: 2,
     color: colors.text,
     fontFamily: typography.fontFamily,
-    fontSize: 13,
+    fontSize: 13
   },
   verdictCard: {
     borderRadius: radius.lg,
@@ -267,7 +303,7 @@ const styles = StyleSheet.create({
   awkiSays: {
     color: colors.rustDark,
     fontFamily: typography.fontFamily,
-    fontSize: 11,
+    fontSize: 11
   },
   verdictTitle: {
     color: colors.danger,
@@ -279,7 +315,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: typography.fontFamily,
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: 20
   },
   section: {
     gap: spacing.sm
@@ -302,7 +338,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: radius.sm,
-    backgroundColor: colors.surface
+    backgroundColor: "#F7E9E5",
+    borderColor: "#E6BDB4",
+    borderWidth: 1
+  },
+  signalIconSafe: {
+    backgroundColor: "#EAF2EA",
+    borderColor: "#BFD9C7"
   },
   signalCopy: {
     flex: 1

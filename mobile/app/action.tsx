@@ -1,4 +1,3 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { reportCase } from "../src/api/client";
@@ -14,7 +13,40 @@ const FALLBACK_STEPS = [
   "Reporta el caso si ya entregaste datos."
 ];
 
-const stepIcons = ["close-octagon-outline", "key-outline", "shield-check-outline", "flag-outline"];
+type ActionIconName = "back" | "block" | "key" | "shield" | "flag" | "next" | "book" | "alert" | "light" | "lock";
+
+const stepIcons: ActionIconName[] = ["block", "key", "shield", "flag"];
+
+function ActionIcon({ name, size = 22, color = colors.text }: { name: ActionIconName; size?: number; color?: string }) {
+  const glyphs: Record<ActionIconName, string> = {
+    back: "‹",
+    block: "!",
+    key: "K",
+    shield: "✓",
+    flag: "⚑",
+    next: "›",
+    book: "i",
+    alert: "!",
+    light: "!",
+    lock: "L"
+  };
+
+  return (
+    <Text
+      style={[
+        styles.actionIconGlyph,
+        {
+          color,
+          fontSize: size,
+          lineHeight: Math.round(size * 1.08)
+        }
+      ]}
+      numberOfLines={1}
+    >
+      {glyphs[name]}
+    </Text>
+  );
+}
 
 export default function ActionScreen() {
   const params = useLocalSearchParams();
@@ -47,7 +79,7 @@ export default function ActionScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.topRow}>
           <Pressable style={styles.backButton} onPress={() => router.back()}>
-            <MaterialCommunityIcons name="chevron-left" size={26} color={colors.text} />
+            <ActionIcon name="back" size={31} color={colors.text} />
           </Pressable>
           <Text style={styles.topTitle}>Qué hacer ahora</Text>
           <DemoThumbMenu active="action" analysisId={id} />
@@ -66,41 +98,43 @@ export default function ActionScreen() {
                 <Text style={styles.indexText}>{index + 1}</Text>
               </View>
               <View style={styles.stepIcon}>
-                <MaterialCommunityIcons
-                  name={(stepIcons[index] ?? "shield-alert-outline") as keyof typeof MaterialCommunityIcons.glyphMap}
-                  size={32}
+                <ActionIcon
+                  name={stepIcons[index] ?? "alert"}
+                  size={index === 0 ? 30 : 28}
                   color={index === 1 ? colors.warning : index === 2 ? colors.success : colors.danger}
                 />
               </View>
               <Text style={styles.stepText}>{step}</Text>
-              <MaterialCommunityIcons name="chevron-right" size={24} color={colors.muted} />
+              <ActionIcon name="next" size={25} color={colors.muted} />
             </View>
           ))}
         </View>
 
         <Pressable style={styles.outlineButton} onPress={() => router.back()}>
-          <MaterialCommunityIcons name="book-open-page-variant-outline" size={22} color={colors.primary} />
+          <ActionIcon name="book" size={23} color={colors.primary} />
           <Text style={styles.outlineButtonText}>Ver explicación completa</Text>
         </Pressable>
 
         <Pressable style={styles.primaryButton} onPress={onReport}>
-          <MaterialCommunityIcons name="alert-outline" size={22} color={colors.surface} />
+          <ActionIcon name="alert" size={24} color={colors.surface} />
           <Text style={styles.primaryButtonText}>Reportar caso</Text>
         </Pressable>
 
         {embedding?.label ? (
           <View style={styles.patternCard}>
-            <MaterialCommunityIcons name="lightbulb-on-outline" size={32} color={colors.warning} />
+            <View style={styles.patternIcon}>
+              <ActionIcon name="light" size={24} color={colors.warning} />
+            </View>
             <View style={styles.patternCopy}>
               <Text style={styles.patternTitle}>Patrón similar a fraudes conocidos</Text>
               <Text style={styles.patternText}>{embedding.label}</Text>
             </View>
-            <MaterialCommunityIcons name="chevron-right" size={24} color={colors.muted} />
+            <ActionIcon name="next" size={25} color={colors.muted} />
           </View>
         ) : null}
 
         <View style={styles.privacyCard}>
-          <MaterialCommunityIcons name="lock-outline" size={26} color={colors.muted} />
+          <ActionIcon name="lock" size={22} color={colors.muted} />
           <Text style={styles.privacyText}>Analizamos en privado y priorizamos tu seguridad.</Text>
         </View>
       </ScrollView>
@@ -113,6 +147,12 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingBottom: spacing.xl,
     gap: spacing.lg
+  },
+  actionIconGlyph: {
+    includeFontPadding: false,
+    fontFamily: typography.fontFamilyBold,
+    textAlign: "center",
+    textAlignVertical: "center"
   },
   topRow: {
     flexDirection: "row",
@@ -195,7 +235,13 @@ const styles = StyleSheet.create({
   },
   stepIcon: {
     width: 42,
-    alignItems: "center"
+    height: 42,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: radius.sm,
+    backgroundColor: colors.surfaceAlt,
+    borderColor: colors.border,
+    borderWidth: 1
   },
   stepText: {
     flex: 1,
@@ -249,6 +295,16 @@ const styles = StyleSheet.create({
   },
   patternCopy: {
     flex: 1
+  },
+  patternIcon: {
+    width: 42,
+    height: 42,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: radius.sm,
+    backgroundColor: "#FFF4D8",
+    borderColor: "#E8C56F",
+    borderWidth: 1
   },
   patternTitle: {
     color: colors.text,
