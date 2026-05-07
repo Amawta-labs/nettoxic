@@ -8,28 +8,49 @@ import { geminiSpeechConfigured, generateRiskAlertSpeech, type RiskSpeechResult 
 export type SpeechProvider = "elevenlabs" | "gemini";
 export type SpeechResult = (ElevenLabsSpeechResult | RiskSpeechResult) & {
   provider: SpeechProvider;
+  fallbackFrom?: SpeechProvider;
 };
 
-function configuredProvider(): SpeechProvider | null {
+type ProviderPreference = SpeechProvider | "auto";
+
+function providerPreference(): ProviderPreference {
   const preferred = process.env.TTS_PROVIDER?.trim().toLowerCase();
-  if (preferred === "elevenlabs" && elevenLabsSpeechConfigured()) return "elevenlabs";
-  if (preferred === "gemini" && geminiSpeechConfigured()) return "gemini";
-  if (elevenLabsSpeechConfigured()) return "elevenlabs";
-  if (geminiSpeechConfigured()) return "gemini";
-  return null;
+  if (preferred === "elevenlabs" || preferred === "gemini") return preferred;
+  return "auto";
 }
 
 export function speechConfigured() {
-  return Boolean(configuredProvider());
+  const preferred = providerPreference();
+  if (preferred === "elevenlabs") return elevenLabsSpeechConfigured();
+  if (preferred === "gemini") return geminiSpeechConfigured();
+  return elevenLabsSpeechConfigured() || geminiSpeechConfigured();
 }
 
 export async function generateSpeech(input: { text: string; voice?: string }): Promise<SpeechResult> {
-  const provider = configuredProvider();
-  if (provider === "elevenlabs") {
-    return { ...(await generateElevenLabsRiskSpeech(input)), provider };
+  const preferred = providerPreference();
+
+  if (preferred === "elevenlabs") {
+    if (!elevenLabsSpeechConfigured()) throw new Error("elevenlabs_tts_not_configured");
+    return { ...(await generateElevenLabsRiskSpeech(input)), provider: "elevenlabs" };
   }
-  if (provider === "gemini") {
-    return { ...(await generateRiskAlertSpeech(input)), provider };
+
+  if (preferred === "gemini") {
+    if (!geminiSpeechConfigured()) throw new Error("gemini_tts_not_configured");
+    return { ...(await generateRiskAlertSpeech(input)), provider: "gemini" };
   }
+
+  if (elevenLabsSpeechConfigured()) {
+    try {
+      return { ...(await generateElevenLabsRiskSpeech(input)), provider: "elevenlabs" };
+    } catch (error) {
+      if (!geminiSpeechConfigured()) throw error;
+      return { ...(await generateRiskAlertSpeech(input)), provider: "gemini", fallbackFrom: "elevenlabs" };
+    }
+  }
+
+  if (geminiSpeechConfigured()) {
+    return { ...(await generateRiskAlertSpeech(input)), provider: "gemini" };
+  }
+
   throw new Error("tts_not_configured");
 }

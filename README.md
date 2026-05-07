@@ -135,8 +135,9 @@ paquete retenido, premio falso, soporte falso y transferencia urgente, y devuelv
 `debug.embedding`.
 
 La voz de alerta usa `POST /speech/risk-alert`: el telefono recibe `speakText` en la push,
-solicita audio corto al backend y lo reproduce localmente. Las claves ElevenLabs/Gemini nunca
-se exponen en Expo.
+solicita audio corto al backend y lo reproduce localmente. Con `TTS_PROVIDER=auto`, el backend
+intenta ElevenLabs primero y cae a Gemini si el proveedor rechaza la generacion. Las claves
+ElevenLabs/Gemini nunca se exponen en Expo.
 
 ## Variables Mobile
 
