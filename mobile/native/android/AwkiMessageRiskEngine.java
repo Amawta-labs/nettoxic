@@ -145,6 +145,19 @@ public final class AwkiMessageRiskEngine {
     return "No respondas. No abras enlaces. No compartas claves.";
   }
 
+  static String overlayBody(JSONObject analysis) {
+    String entity = cleanEntity(analysis.optString("entidad_suplantada", ""));
+    if (!entity.isEmpty()) {
+      return "No respondas ni abras enlaces.\n" + entity + " no pide claves por mensaje.";
+    }
+    return "No respondas ni abras enlaces.\nNo compartas claves ni codigos.";
+  }
+
+  static String overlaySource(Capture capture) {
+    String app = capture.sourceApp == null || capture.sourceApp.trim().isEmpty() ? "mensaje" : capture.sourceApp.trim();
+    return "Detectado en " + app;
+  }
+
   static String shortSource(Capture capture) {
     String app = capture.sourceApp == null || capture.sourceApp.trim().isEmpty() ? "mensaje" : capture.sourceApp.trim();
     String sender = capture.sender == null ? "" : capture.sender.trim();

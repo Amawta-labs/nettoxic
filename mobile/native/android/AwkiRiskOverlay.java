@@ -45,18 +45,26 @@ public final class AwkiRiskOverlay {
         container.setBackground(background);
 
         TextView title = new TextView(context);
-        title.setText("Posible estafa");
+        title.setText("Awki alerta");
         title.setTextColor(Color.rgb(120, 22, 18));
-        title.setTextSize(22);
+        title.setTextSize(24);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         container.addView(title);
 
         TextView body = new TextView(context);
-        body.setText(AwkiMessageRiskEngine.shortBody(analysis) + "\n" + AwkiMessageRiskEngine.shortSource(capture));
+        body.setText(AwkiMessageRiskEngine.overlayBody(analysis));
         body.setTextColor(Color.rgb(50, 35, 32));
-        body.setTextSize(17);
-        body.setPadding(0, 10, 0, 0);
+        body.setTextSize(20);
+        body.setLineSpacing(3, 1.0f);
+        body.setPadding(0, 8, 0, 0);
         container.addView(body);
+
+        TextView source = new TextView(context);
+        source.setText(AwkiMessageRiskEngine.overlaySource(capture));
+        source.setTextColor(Color.rgb(120, 95, 88));
+        source.setTextSize(14);
+        source.setPadding(0, 8, 0, 0);
+        container.addView(source);
 
         int type = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
           ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
@@ -82,7 +90,7 @@ public final class AwkiRiskOverlay {
           } finally {
             activeView = null;
           }
-        }, 18000);
+        }, 12000);
       } catch (Exception error) {
         error.printStackTrace();
       }
