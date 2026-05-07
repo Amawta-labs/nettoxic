@@ -206,13 +206,11 @@ export function StickyDemoThumbNav() {
                 onPress={() => go(target.key)}
                 disabled={disabled}
               >
-                <MiniPreview type={target.preview} active={isActive} compact />
-                <View style={styles.dockLabelRow}>
-                  <MaterialCommunityIcons name={target.icon} size={12} color={isActive ? colors.primary : colors.muted} />
-                  <Text style={[styles.dockLabel, isActive && styles.dockLabelActive]} numberOfLines={1}>
-                    {target.label}
-                  </Text>
-                </View>
+                <View style={[styles.dockActiveBar, isActive && styles.dockActiveBarVisible]} />
+                <MaterialCommunityIcons name={target.icon} size={25} color={isActive ? colors.primary : colors.muted} />
+                <Text style={[styles.dockLabel, isActive && styles.dockLabelActive]} numberOfLines={1}>
+                  {target.label}
+                </Text>
               </Pressable>
             );
           })}
@@ -234,49 +232,49 @@ const styles = StyleSheet.create({
   },
   dockShell: {
     minHeight: layout.demoDockReservedHeight - spacing.md,
-    borderRadius: radius.lg,
+    borderRadius: 30,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: "rgba(255, 252, 244, 0.97)",
-    paddingVertical: spacing.sm,
-    paddingHorizontal: 6,
+    paddingVertical: 7,
+    paddingHorizontal: spacing.sm,
     ...shadow
   },
   dockTrack: {
     flexDirection: "row",
-    gap: 4
+    alignItems: "center",
+    justifyContent: "space-between"
   },
   dockItem: {
     flex: 1,
     minWidth: 0,
-    minHeight: 82,
+    minHeight: 56,
     alignItems: "center",
-    justifyContent: "space-between",
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: "transparent",
-    padding: 4,
-    gap: 4
+    justifyContent: "center",
+    paddingHorizontal: 2,
+    gap: 3
   },
   dockItemActive: {
-    backgroundColor: "#F5EFE0",
-    borderColor: colors.primary
+    backgroundColor: "transparent"
   },
   dockItemDisabled: {
     opacity: 0.45
   },
-  dockLabelRow: {
-    minHeight: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 3
+  dockActiveBar: {
+    width: 18,
+    height: 3,
+    borderRadius: 999,
+    backgroundColor: "transparent",
+    marginBottom: 2
+  },
+  dockActiveBarVisible: {
+    backgroundColor: colors.primary
   },
   dockLabel: {
-    maxWidth: 42,
+    maxWidth: 64,
     color: colors.muted,
     fontFamily: typography.fontFamilyBold,
-    fontSize: 9
+    fontSize: 10
   },
   dockLabelActive: {
     color: colors.primary

@@ -49,5 +49,5 @@ export const typography = {
 };
 
 export const layout = {
-  demoDockReservedHeight: 116
+  demoDockReservedHeight: 88
 };
