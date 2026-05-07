@@ -1,10 +1,12 @@
 package cl.nettoxic.app.proactive;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -38,6 +40,16 @@ public final class AwkiRiskOverlay {
         LinearLayout container = new LinearLayout(context);
         container.setOrientation(LinearLayout.VERTICAL);
         container.setPadding(26, 18, 26, 18);
+        container.setClickable(true);
+        container.setOnClickListener((view) -> {
+          try {
+            if (activeView != null) manager.removeView(activeView);
+          } catch (Exception ignored) {
+          } finally {
+            activeView = null;
+          }
+          openAnalysis(context, capture.id);
+        });
         GradientDrawable background = new GradientDrawable();
         background.setColor(Color.rgb(255, 245, 242));
         background.setStroke(3, Color.rgb(185, 48, 42));
@@ -60,7 +72,7 @@ public final class AwkiRiskOverlay {
         container.addView(body);
 
         TextView source = new TextView(context);
-        source.setText(AwkiMessageRiskEngine.overlaySource(capture));
+        source.setText(AwkiMessageRiskEngine.overlaySource(capture) + " · Toca para ver análisis");
         source.setTextColor(Color.rgb(120, 95, 88));
         source.setTextSize(14);
         source.setPadding(0, 8, 0, 0);
@@ -95,5 +107,19 @@ public final class AwkiRiskOverlay {
         error.printStackTrace();
       }
     });
+  }
+
+  private static void openAnalysis(Context context, String itemId) {
+    try {
+      Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("nettoxic:///analysis/" + Uri.encode(itemId)));
+      intent.setPackage(context.getPackageName());
+      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+      context.startActivity(intent);
+    } catch (Exception error) {
+      Intent fallback = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+      if (fallback == null) return;
+      fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+      context.startActivity(fallback);
+    }
   }
 }

@@ -55,18 +55,15 @@ ingestRouter.post("/app-message", asyncRoute(async (req, res) => {
 
   const message = normalizeAppMessageInput(parsed.data);
   const analysis = await analyzeMessage(message);
-  const shouldPersist = parsed.data.captureMethod !== "accessibility";
-  const item: StoredInboxItem = shouldPersist
-    ? await recordAnalyzedInboxItem(message, analysis)
-    : {
-        id: message.id ?? `app-message-${Date.now()}`,
-        source: message.source,
-        sender: message.sender ?? "desconocido",
-        subject: message.subject,
-        preview: "Contenido visible analizado sin guardarlo.",
-        receivedAt: new Date().toISOString(),
-        analysis
-      };
+  const sanitizedMessage = parsed.data.captureMethod === "accessibility"
+    ? {
+        ...message,
+        sender: parsed.data.sourceApp,
+        subject: `${parsed.data.sourceApp} alerta`,
+        content: "Contenido visible analizado sin guardarlo."
+      }
+    : message;
+  const item: StoredInboxItem = await recordAnalyzedInboxItem(sanitizedMessage, analysis);
   const push = await notifyRiskItem(item).catch((error) => {
     console.error("Failed to send risk push notification", error);
     return { attempted: 0, sent: 0, skipped: 0, errors: [error instanceof Error ? error.message : "push_error"] };

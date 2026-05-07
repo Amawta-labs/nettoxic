@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -102,7 +103,9 @@ public final class AwkiMessageRiskEngine {
       manager.createNotificationChannel(channel);
     }
 
-    Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+    Intent launchIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("nettoxic:///analysis/" + Uri.encode(capture.id)));
+    launchIntent.setPackage(context.getPackageName());
+    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
     PendingIntent pendingIntent = PendingIntent.getActivity(
       context,
       Math.abs(capture.id.hashCode()),
