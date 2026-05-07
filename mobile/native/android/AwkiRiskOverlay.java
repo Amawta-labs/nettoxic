@@ -82,7 +82,7 @@ public final class AwkiRiskOverlay {
           } finally {
             activeView = null;
           }
-        }, 9000);
+        }, 18000);
       } catch (Exception error) {
         error.printStackTrace();
       }

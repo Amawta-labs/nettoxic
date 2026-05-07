@@ -8,7 +8,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
@@ -93,6 +96,10 @@ public final class AwkiMessageRiskEngine {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Awki proactive alerts", NotificationManager.IMPORTANCE_HIGH);
       channel.setDescription("Alertas antifraude generadas al detectar mensajes sospechosos en apps.");
+      channel.enableVibration(true);
+      channel.setVibrationPattern(new long[] { 0, 250, 120, 350 });
+      channel.enableLights(true);
+      channel.setLightColor(Color.rgb(185, 48, 42));
       manager.createNotificationChannel(channel);
     }
 
@@ -112,11 +119,28 @@ public final class AwkiMessageRiskEngine {
       .setContentText(explanation)
       .setStyle(new NotificationCompat.BigTextStyle().bigText(explanation + "\nApp: " + capture.sourceApp + "\nDe: " + capture.sender))
       .setPriority(NotificationCompat.PRIORITY_HIGH)
+      .setCategory(NotificationCompat.CATEGORY_ALARM)
+      .setDefaults(NotificationCompat.DEFAULT_ALL)
+      .setVibrate(new long[] { 0, 250, 120, 350 })
+      .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
       .setAutoCancel(true)
       .setContentIntent(pendingIntent);
 
     manager.notify(("awki-proactive-" + capture.id).hashCode(), builder.build());
+    vibrate(context);
     AwkiRiskOverlay.show(context, capture, analysis);
+  }
+
+  private static void vibrate(Context context) {
+    try {
+      Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+      if (vibrator == null || !vibrator.hasVibrator()) return;
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        vibrator.vibrate(VibrationEffect.createWaveform(new long[] { 0, 250, 120, 350 }, -1));
+      } else {
+        vibrator.vibrate(new long[] { 0, 250, 120, 350 }, -1);
+      }
+    } catch (Exception ignored) {}
   }
 
   public static String appLabel(Context context, String packageName) {
