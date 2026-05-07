@@ -67,7 +67,11 @@ ingestRouter.post("/audio", asyncRoute(async (req, res) => {
       filename: parsed.data.filename,
       languageCode: parsed.data.languageCode ?? "es"
     });
-  } catch {
+  } catch (error) {
+    console.error(
+      "Audio transcription failed",
+      error instanceof Error ? error.message.slice(0, 500) : "unknown_audio_transcription_error"
+    );
     res.status(503).json({ error: "audio_transcription_unavailable" });
     return;
   }
