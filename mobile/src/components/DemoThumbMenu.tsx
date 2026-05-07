@@ -23,7 +23,7 @@ const targets: DemoTarget[] = [
   { key: "inbox", label: "Bandeja", icon: "email-outline", preview: "inbox" },
   { key: "detail", label: "Detalle", icon: "alert-outline", preview: "detail" },
   { key: "action", label: "Pasos", icon: "shield-check-outline", preview: "steps" },
-  { key: "manual", label: "Foto", icon: "camera-outline", preview: "manual" }
+  { key: "manual", label: "Probar", icon: "shield-search", preview: "manual" }
 ];
 
 function MiniPreview({ type, active }: { type: DemoTarget["preview"]; active: boolean }) {

@@ -109,6 +109,28 @@ function uniqueSignalCards(signals: FraudSignal[], item: InboxItem) {
     .slice(0, 4);
 }
 
+function formatLatency(latencyMs?: number) {
+  if (typeof latencyMs !== "number") return "no medida";
+  const seconds = latencyMs / 1000;
+  return `${seconds < 10 ? seconds.toFixed(1) : Math.round(seconds)}s`;
+}
+
+function liveDemoInput(item: InboxItem) {
+  return item.demoEvidence?.input || item.preview;
+}
+
+function modelLabel(item: InboxItem) {
+  const debug = item.analysis.debug;
+  if (debug?.usedClaude) return "Claude real";
+  return debug?.model ? "Fallback local" : "Reglas locales";
+}
+
+function modelDetail(item: InboxItem) {
+  const debug = item.analysis.debug;
+  if (!debug?.model) return "sin modelo reportado";
+  return debug.model.replace("anthropic:", "");
+}
+
 export default function AnalysisScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
@@ -128,6 +150,10 @@ export default function AnalysisScreen() {
 
   const cards = uniqueSignalCards(item.analysis.senales_detectadas, item);
   const isFraud = item.analysis.score >= 65;
+  const debug = item.analysis.debug;
+  const latencyOk = typeof item.demoEvidence?.latencyMs === "number" && item.demoEvidence.latencyMs < 30000;
+  const completedTools = debug?.agent?.tools.filter((tool) => tool.status === "completed").length ?? 0;
+  const selectedAgents = debug?.agent?.selectedAgents.join(", ") || "orquestador";
 
   async function onReport() {
     if (!id) return;
@@ -168,6 +194,46 @@ export default function AnalysisScreen() {
             </View>
           </View>
           <Text style={styles.verdictText} numberOfLines={3}>{item.analysis.explicacion}</Text>
+        </View>
+
+        <View style={styles.demoCard}>
+          <View style={styles.demoHeader}>
+            <View>
+              <Text style={styles.demoEyebrow}>DEMO EN VIVO</Text>
+              <Text style={styles.demoTitle}>Input y output del agente</Text>
+            </View>
+            <View style={[styles.latencyPill, latencyOk ? styles.latencyPillOk : styles.latencyPillMuted]}>
+              <Text style={[styles.latencyText, latencyOk ? styles.latencyTextOk : styles.latencyTextMuted]}>
+                {formatLatency(item.demoEvidence?.latencyMs)}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.demoBlock}>
+            <Text style={styles.demoLabel}>INPUT</Text>
+            <Text style={styles.demoBody} numberOfLines={4}>{liveDemoInput(item)}</Text>
+          </View>
+
+          <View style={styles.demoBlock}>
+            <Text style={styles.demoLabel}>OUTPUT</Text>
+            <Text style={styles.demoOutputLine}>
+              Riesgo {item.analysis.score}/100 · {item.analysis.nivel.toUpperCase()}
+            </Text>
+            <Text style={styles.demoBody} numberOfLines={2}>{item.analysis.explicacion}</Text>
+          </View>
+
+          <View style={styles.proofGrid}>
+            <View style={styles.proofCell}>
+              <Text style={styles.proofLabel}>LLM</Text>
+              <Text style={styles.proofValue}>{modelLabel(item)}</Text>
+              <Text style={styles.proofMeta} numberOfLines={1}>{modelDetail(item)}</Text>
+            </View>
+            <View style={styles.proofCell}>
+              <Text style={styles.proofLabel}>ORQUESTADOR</Text>
+              <Text style={styles.proofValue}>{completedTools} tools</Text>
+              <Text style={styles.proofMeta} numberOfLines={1}>{selectedAgents}</Text>
+            </View>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -316,6 +382,116 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily,
     fontSize: 14,
     lineHeight: 20
+  },
+  demoCard: {
+    gap: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    backgroundColor: "#F5F8F1",
+    padding: spacing.md,
+    ...shadow
+  },
+  demoHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: spacing.md
+  },
+  demoEyebrow: {
+    color: colors.primary,
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 11
+  },
+  demoTitle: {
+    marginTop: 2,
+    color: colors.text,
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 16,
+    lineHeight: 20
+  },
+  latencyPill: {
+    minWidth: 70,
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 5,
+    alignItems: "center"
+  },
+  latencyPillOk: {
+    backgroundColor: "#EAF2EA",
+    borderColor: "#BFD9C7"
+  },
+  latencyPillMuted: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border
+  },
+  latencyText: {
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 12
+  },
+  latencyTextOk: {
+    color: colors.success
+  },
+  latencyTextMuted: {
+    color: colors.muted
+  },
+  demoBlock: {
+    gap: spacing.xs,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    padding: spacing.md
+  },
+  demoLabel: {
+    color: colors.muted,
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 10
+  },
+  demoOutputLine: {
+    color: colors.text,
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 14,
+    lineHeight: 19
+  },
+  demoBody: {
+    color: colors.text,
+    fontFamily: typography.fontFamily,
+    fontSize: 13,
+    lineHeight: 18
+  },
+  proofGrid: {
+    flexDirection: "row",
+    gap: spacing.sm
+  },
+  proofCell: {
+    flex: 1,
+    minWidth: 0,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    padding: spacing.md
+  },
+  proofLabel: {
+    color: colors.muted,
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 9
+  },
+  proofValue: {
+    marginTop: 3,
+    color: colors.primary,
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 14,
+    lineHeight: 18
+  },
+  proofMeta: {
+    marginTop: 2,
+    color: colors.muted,
+    fontFamily: typography.fontFamily,
+    fontSize: 10,
+    lineHeight: 14
   },
   section: {
     gap: spacing.sm

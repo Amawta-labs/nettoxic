@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { analyzeText } from "../src/api/client";
+import { analyzeTextWithMeta } from "../src/api/client";
 import { AwkiMark } from "../src/components/AwkiMark";
 import { DemoThumbMenu } from "../src/components/DemoThumbMenu";
 import { Screen } from "../src/components/Screen";
@@ -25,15 +25,20 @@ export default function ManualAnalysisScreen() {
     setSubmitting(true);
     setError(null);
     try {
-      const analysis = await analyzeText(trimmed);
+      const { analysis, latencyMs, analyzedAt } = await analyzeTextWithMeta(trimmed);
       const id = `manual-${Date.now()}`;
       addItem({
         id,
         source: "manual",
         sender: "Ingreso manual",
         subject: "Mensaje sospechoso",
-        preview: trimmed.slice(0, 140),
-        analysis
+        preview: trimmed.slice(0, 220),
+        analysis,
+        demoEvidence: {
+          input: trimmed,
+          latencyMs,
+          analyzedAt
+        }
       });
       router.push(`/analysis/${id}`);
     } catch (err) {

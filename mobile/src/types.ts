@@ -63,4 +63,9 @@ export type InboxItem = {
   subject?: string;
   preview: string;
   analysis: AnalysisResult;
+  demoEvidence?: {
+    input: string;
+    latencyMs: number;
+    analyzedAt: string;
+  };
 };

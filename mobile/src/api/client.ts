@@ -4,6 +4,7 @@ import type { AnalysisResult, InboxItem } from "../types";
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8787";
 const USE_MOCKS = process.env.EXPO_PUBLIC_USE_MOCKS === "true";
 const USER_ID = process.env.EXPO_PUBLIC_NETTOXIC_USER_ID ?? "daslav";
+const REQUEST_TIMEOUT_MS = 28000;
 
 export type GmailAccountSummary = {
   userId: string;
@@ -63,9 +64,23 @@ function assertInboxResponse(value: unknown): InboxItem[] {
 }
 
 async function fetchJson(path: string, init?: RequestInit) {
-  const response = await fetch(`${API_BASE_URL}${path}`, init);
-  if (!response.ok) throw new ApiError(`HTTP ${response.status}`);
-  return response.json();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      ...init,
+      signal: controller.signal
+    });
+    if (!response.ok) throw new ApiError(`HTTP ${response.status}`);
+    return response.json();
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new ApiError("Tiempo agotado: la respuesta supero 28s");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export async function getInbox(): Promise<InboxItem[]> {
@@ -127,6 +142,20 @@ export async function analyzeText(content: string): Promise<AnalysisResult> {
     body: JSON.stringify({ source: "manual", content })
   });
   return assertAnalysisResult(data);
+}
+
+export async function analyzeTextWithMeta(content: string): Promise<{
+  analysis: AnalysisResult;
+  latencyMs: number;
+  analyzedAt: string;
+}> {
+  const startedAt = Date.now();
+  const analysis = await analyzeText(content);
+  return {
+    analysis,
+    latencyMs: Date.now() - startedAt,
+    analyzedAt: new Date().toISOString()
+  };
 }
 
 export async function reportCase(messageId: string, confirmedFraud: boolean) {

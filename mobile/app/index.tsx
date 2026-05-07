@@ -222,8 +222,8 @@ export default function InboxScreen() {
               </Pressable>
               <Link href="/manual" asChild>
                 <Pressable style={styles.bottomItem}>
-                  <MaterialCommunityIcons name="camera-outline" size={24} color={colors.muted} />
-                  <Text style={styles.bottomText}>Foto</Text>
+                  <MaterialCommunityIcons name="shield-search" size={24} color={colors.muted} />
+                  <Text style={styles.bottomText}>Probar</Text>
                 </Pressable>
               </Link>
               <Pressable style={styles.bottomItem} onPress={tab === "sms" ? enableSmsProtection : enableEmailAlerts}>
