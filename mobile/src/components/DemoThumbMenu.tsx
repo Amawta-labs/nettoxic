@@ -1,7 +1,8 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useInbox } from "../state/InboxContext";
 import { colors, radius, shadow, spacing, typography } from "../theme";
 
 type DemoScreen = "login" | "inbox" | "detail" | "action" | "manual";
@@ -19,9 +20,9 @@ type DemoTarget = {
 };
 
 const targets: DemoTarget[] = [
-  { key: "login", label: "Login", icon: "login", preview: "manual" },
+  { key: "login", label: "Conectar", icon: "login", preview: "manual" },
   { key: "inbox", label: "Bandeja", icon: "email-outline", preview: "inbox" },
-  { key: "detail", label: "Detalle", icon: "alert-outline", preview: "detail" },
+  { key: "detail", label: "Análisis", icon: "alert-outline", preview: "detail" },
   { key: "action", label: "Pasos", icon: "shield-check-outline", preview: "steps" },
   { key: "manual", label: "Probar", icon: "shield-search", preview: "manual" }
 ];
@@ -67,7 +68,9 @@ function MiniPreview({ type, active }: { type: DemoTarget["preview"]; active: bo
 
 export function DemoThumbMenu({ active, analysisId }: DemoThumbMenuProps) {
   const router = useRouter();
+  const { items } = useInbox();
   const [open, setOpen] = useState(false);
+  const selectedAnalysisId = analysisId ?? items.find((item) => item.analysis.score >= 35)?.id ?? items[0]?.id ?? null;
 
   function go(target: DemoScreen) {
     setOpen(false);
@@ -79,12 +82,12 @@ export function DemoThumbMenu({ active, analysisId }: DemoThumbMenuProps) {
       router.push("/login");
       return;
     }
-    if (target === "detail" && analysisId) {
-      router.push(`/analysis/${analysisId}`);
+    if (target === "detail" && selectedAnalysisId) {
+      router.push(`/analysis/${selectedAnalysisId}`);
       return;
     }
     if (target === "action") {
-      router.push({ pathname: "/action", params: analysisId ? { id: analysisId } : {} });
+      router.push({ pathname: "/action", params: selectedAnalysisId ? { id: selectedAnalysisId } : {} });
       return;
     }
     if (target === "manual") {
@@ -108,7 +111,10 @@ export function DemoThumbMenu({ active, analysisId }: DemoThumbMenuProps) {
         <Pressable style={styles.scrim} onPress={() => setOpen(false)}>
           <Pressable style={styles.sheet} onPress={(event) => event.stopPropagation()}>
             <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Menú demo</Text>
+              <View style={styles.sheetTitleBlock}>
+                <Text style={styles.sheetTitle}>Navegación demo</Text>
+                <Text style={styles.sheetSubtitle}>Toca un thumbnail para saltar de pantalla.</Text>
+              </View>
               <Pressable style={styles.closeButton} onPress={() => setOpen(false)}>
                 <View style={styles.closeGlyph}>
                   <View style={[styles.closeLine, styles.closeLineA]} />
@@ -116,10 +122,10 @@ export function DemoThumbMenu({ active, analysisId }: DemoThumbMenuProps) {
                 </View>
               </Pressable>
             </View>
-            <View style={styles.grid}>
+            <ScrollView contentContainerStyle={styles.grid} showsVerticalScrollIndicator={false}>
               {targets.map((target) => {
                 const isActive = target.key === active;
-                const disabled = target.key === "detail" && !analysisId;
+                const disabled = (target.key === "detail" || target.key === "action") && !selectedAnalysisId;
                 return (
                   <Pressable
                     key={target.key}
@@ -130,12 +136,14 @@ export function DemoThumbMenu({ active, analysisId }: DemoThumbMenuProps) {
                     <MiniPreview type={target.preview} active={isActive} />
                     <View style={styles.thumbFooter}>
                       <View style={[styles.thumbDot, isActive && styles.thumbDotActive]} />
-                      <Text style={[styles.thumbLabel, isActive && styles.thumbLabelActive]}>{target.label}</Text>
+                      <Text style={[styles.thumbLabel, isActive && styles.thumbLabelActive]} numberOfLines={1}>
+                        {target.label}
+                      </Text>
                     </View>
                   </Pressable>
                 );
               })}
-            </View>
+            </ScrollView>
           </Pressable>
         </Pressable>
       </Modal>
@@ -188,11 +196,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between"
   },
+  sheetTitleBlock: {
+    flex: 1,
+    paddingRight: spacing.md
+  },
   sheetTitle: {
     color: colors.text,
     fontFamily: typography.fontFamilyBold,
     fontSize: 16,
     
+  },
+  sheetSubtitle: {
+    marginTop: 3,
+    color: colors.muted,
+    fontFamily: typography.fontFamily,
+    fontSize: 12,
+    lineHeight: 16
   },
   closeButton: {
     width: 34,
